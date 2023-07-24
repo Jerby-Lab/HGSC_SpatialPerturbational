@@ -12,8 +12,8 @@
 #6 Perturb-Seq meta-analyses (Figure 6, Table S6)
 #7 Perturb-Seq and genetic screen analyses (Figure 7, Table S7)
 
-HGSC_main<-function(){
-  files<-list.files("~/Desktop/R_code/6_Github/HGSC/",include.dirs = F,pattern = ".R",full.names = T)
+HGSC_main<-function(path2git){
+  files<-list.files(paste0(path2git,"/Code"),include.dirs = F,pattern = ".R",full.names = T)
   lapply(files, source)
   
   #1 Download Tumor Infiltration Programs (TIP)

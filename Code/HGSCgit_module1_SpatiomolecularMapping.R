@@ -7,10 +7,732 @@
 # Figure 1A. Spatial Cohort Design (generated in Figma, with Lettie Mcguire)
 # Figure 1B. CoMut Plot (output files in Results/ used for python code)
 # Figure 1C. Cell Type UMAPs
-# Figure 1D. Cell Types in situ
+# Figure 1D. Cell Types in situ (composite with H&E images made in Adobe Illustrator)
 # Figure 1E. Coembedding scross ST and scRNA-seq datasets
 # Figure 1F. Cell Type Compositions
 # Figure 1G. Hypergeometric Mapping
 # Figure 1H. Cell Co-localization Quotient Analysis
 
+HGSC_Figure1_SpatiomolecularMapping <- function(r, q, s, cell_2_rgb){
+  print("Section1")
+  print("Fig1A is generated outside of R")
+  #1 Regenerate input files for CoMut plot in python
+  print("Fig1B")
+  master <- HGSC_Fig1B_make_comut(r, q, s)
+  #2 Generate Table S1A, the specifications of ST and scRNA-seq platforms
+  print("TableS1A")
+  HGSC_TableS1A_write_specs(master)
+  #3 Generate Table S1B, genes of each dataset
+  print("TableS1B")
+  HGSC_TableS1B_write_genes(r=r,q=q,s=s)
+  #4 Generate Table S2A, key names of clinical data
+  print("TableS2A")
+  HGSC_TableS2A_write_colkeys()
+  #5 Generate Table S2B, colnames keys
+  print("TableS2B")
+  HGSC_TableS2B_write_fullmetadata(master)
+  #6 Regenerate Figure 1C: Cell Type UMAPs
+  print("Fig1C")
+  HGSC_Fig1C_celltype_umaps(r=r,
+                            cell_2_rgb = cell_2_rgb)
+  #7 Generate Table S3A, cell type signatures from scRNA-seq
+  print("TableS3A")
+  HGSC_TableS3A_write_scRNAsigs()
+  #8 Generate Table S3B, cell type signatures from SMI
+  print("TableS3B")
+  HGSC_TableS3B_write_SMIsigs(r=r)
+  #9 Regenerate Figure 1D: Cell Types in situ
+  print("Fig1D")
+  HGSC_Fig1D_celltypes_insitu(r=r, q=q, s=s, cell_2_rgb=cell_2_rgb)
+  #10 Regenerate Figure 1E: Coembedding scross ST and scRNA-seq datasets
+  print("Fig1E")
+  HGSC_Fig1E_coembedding(cell_2_rgb)
+  #11 Regenerate Figure 1F: Cell Type Compositions
+  print("Fig1F")
+  HGSC_Fig1F_celltype_composition(r=r, q=q, s=s, cell_2_rgb = cell_2_rgb)
+  #12 Regenerate Figure 1F
+  print("Fig1G")
+  # HGSC_Fig1G_hypergeometric(r=r)
+  #13 Regenerate Figure 1H: Cell Co-localization Quotient Analysis
+  print("Fig1H")
+  HGSC_Fig1H_clq(r=r, cell_2_rgb = cell_2_rgb)
 
+  return()
+}
+
+HGSC_Fig1B_make_comut <- function(r, q, s){
+  clin <- readRDS(get.file("Data/Clinical.rds"))
+  muts <- readRDS(get.file("Data/BRCA_TP53_muts.rds"))
+  # discovery dataset (SMI)
+  smi <- data.frame(r[c("patients",
+                        "samples",
+                        "treatment",
+                        "sites_binary")]) %>%
+    group_by(samples, patients, sites_binary, treatment) %>%
+    summarize(n_cells = length(treatment)) %>%
+    mutate(platform = "SMI")
+
+  # validation dataset 2 (MERFISH)
+  mer <- data.frame(s[c("patients", "samples", "sites")]) %>%
+    group_by(samples, patients, sites) %>%
+    mutate(sites = "Adnexa") %>%
+    rename(sites_binary = sites) %>%
+    summarize(n_cells = length(samples)) %>%
+    mutate(platform = "MERFISH")
+  map <- data.frame(filter(clin, patients %in% mer$patients) %>% select(patients, specimen) %>%
+                      mutate(treatment = c("Treated", "Untreated")[grepl("cyto", specimen) + 1]) %>%
+                      select(patients, treatment))
+  row.names(map) <- map$patients
+  mer$treatment <- map[mer$patients,]$treatment
+  mer <- mer %>% select(samples, patients, sites_binary, treatment, n_cells, platform)
+
+  # validation dataset 1 (ISS)
+  xen <- data.frame(q[c("patients", "samples", "treatment", "sites_binary")]) %>%
+    group_by(samples, patients, sites_binary, treatment) %>%
+    summarize(n_cells = length(treatment)) %>%
+    mutate(platform = "Xenium")
+
+  # merge ST with clinical
+  master <- rbind(smi, xen, mer)
+  master <- merge(master, clin, by.x = "patients", by.y = "patients", all.x = T)
+
+  # merge dna with ST and clinical
+  master <- merge(master, muts, by = "patients", all.x = T)
+
+  # add transcripts quantification
+  smi <- data.frame(r[c("comp.reads", "samples")]) %>%
+    group_by(samples) %>%
+    summarize(median_tpc = median(comp.reads, na.rm = T),
+              mean_tpc = mean(comp.reads, na.rm = T))
+  iss <- data.frame(q[c("comp.reads", "samples")]) %>%
+    group_by(samples) %>%
+    summarize(median_tpc = median(comp.reads, na.rm = T),
+              mean_tpc = mean(comp.reads, na.rm = T))
+  merfish <- data.frame(s[c("comp.reads", "samples")]) %>%
+    group_by(samples) %>%
+    summarize(median_tpc = median(comp.reads, na.rm = T),
+              mean_tpc = mean(comp.reads, na.rm = T))
+  transcripts <- data.frame(do.call("rbind", list(smi,iss,merfish)))
+  master <- merge(master, transcripts, by = "samples", all.x = T)
+
+  # CLINICAL
+  outdir <- paste0(get.file("Results/CoMut/"))
+  if(!dir.exists(outdir)){dir.create(outdir, recursive = T)}
+  df <- select(master,
+               patients,
+               age,
+               stage,
+               parpi_type,
+               treatment,
+               immunotherapy,
+               outcome,
+               pfs4) %>%
+    mutate(stage = gsub("C", "", gsub("B", "", gsub("A1", "", stage))))
+
+  df$immunotherapy <- unlist(lapply(df$immunotherapy, function(x){
+    nos <- c("No", "NO", "no")
+    nas <- c("NA", " ")
+    if (is.na(x)) {
+      return(NA)
+    } else if (x %in% nos) {
+      return("None")
+    } else if (x %in% nas) {
+      return(NA)
+    } else if (x == "not reported (lost to follow-up)"){
+      return (NA)
+    } else {
+      return("Yes")
+    }
+  }))
+
+  df$outcome <- unlist(lapply(df$outcome, function(x){
+    if (is.na(x)) {
+      return(NA)
+    } else if (grepl("dead", x, ignore.case = T)) {
+      return("Dead")
+    } else if (x == "Alive") {
+      return("Alive")
+    } else {
+      return(NA)
+    }
+  }))
+  df$pfs4 <- as.numeric(df$pfs4)
+  df$parpi_type <- as.numeric(df$parpi_type)
+  df$parpi_type[is.na(df$parpi)] <- "None"
+  df$parpi_type[df$parpi == "1"] <- "Maintenance"
+  df$parpi_type[df$parpi == "2"] <- "In Relapse"
+  df$treatment[df$patients == "HGSCTB"] <- "Untreated"
+
+  df <- df %>%
+    mutate(patients = as.character(patients),
+           age = as.numeric(age),
+           stage = factor(stage, c("I", "II", "III", "IV")),
+           treatment = c("Yes", "No")[(treatment == "Untreated") +1],
+           parpi_type = as.character(parpi_type),
+           immunotherapy = as.character(immunotherapy),
+           outcome = as.character(outcome),
+           pfs4 = c(">6m", "<6m")[(as.numeric(pfs4) >= 180) + 1]) %>%
+    unique()
+
+  colnames(df) <- c("Patient", "Age", "Stage", "PARPi",
+                    "NACT","Immunotherapy", "Status", "PFS")
+
+  for (i in 2:8) {
+    selected <- df[,c(1,i)]
+    field <- colnames(df)[i]
+    print(field)
+    selected$categoory <- field
+    out <- selected[,c(1, 3, 2)]
+    colnames(out) <- c("sample", "category", "value")
+    write.table(out, paste0(outdir, field,
+                            "_CoMut_clin.tsv"), sep = "\t",
+                row.names = F, quote = F)
+  }
+
+  # MUTATIONS
+  tp53<- master %>%
+    select(patients, TP53_Somatic, TP53_Germline) %>% unique()
+  tp53$somatic <- unlist(lapply(tp53$TP53_Somatic, function(x){
+    if (is.na(x)) {
+      return(NA)
+    } else if (x == "P" | x == "LP") {
+      return("Pathogenic Mutation (Somatic)")
+    } else {
+      return("No Pathogenic Mutation")
+    }
+  }))
+  tp53$germline <- unlist(lapply(tp53$TP53_Germline, function(x){
+    if (is.na(x)) {
+      return(NA)
+    } else if (x == "P" | x == "LP") {
+      return("Pathogenic Mutation (Germline)")
+    } else {
+      return("No Pathogenic Mutation")
+    }
+  }))
+  tp53 <- select(tp53,patients, somatic) %>%
+    mutate(gene = "TP53") %>%
+    select(patients, gene, somatic) %>%
+    rename(mutation = somatic)
+
+  brca <- master %>%
+    select(patients, BRCA1_Germline, BRCA2_Germline,
+           BRCA1_Somatic, BRCA2_Somatic) %>%
+    unique()
+
+  brca$germline <- unlist(apply(brca, 1, function(row){
+    if (is.na(row[2])) {
+      return(NA)
+    } else if (row[2] == "P" | row[3] == "P" ) {
+      return("Pathogenic Mutation (Germline)")
+    } else {
+      return ("No Pathogenic Mutation")
+    }
+  }))
+  brca$somatic <- unlist(apply(brca, 1, function(row){
+    if (is.na(row[4])) {
+      return(NA)
+    } else if (row[4] == "P" | row[5] == "P" ) {
+      return("Pathogenic Mutation (Somatic)")
+    } else {
+      return ("No Pathogenic Mutation")
+    }
+  }))
+  blah <- filter(brca, grepl("Germline", germline),
+                 grepl("Somatic", germline))
+  brca <- rbind(filter(brca, grepl("Germline", germline)) %>%
+                  select(patients, germline) %>%
+                  rename(mutation = germline) %>%
+                  mutate(gene = "BRCA1/2"),
+                filter(brca, grepl("Somatic", somatic)) %>%
+                  select(patients, somatic) %>%
+                  rename(mutation = somatic) %>%
+                  mutate(gene = "BRCA1/2"),
+                filter(brca, grepl("No", germline), grepl("No", somatic)) %>%
+                  select(patients, somatic) %>%
+                  rename(mutation = somatic) %>%
+                  mutate(gene = "BRCA1/2")) %>%
+    select(patients, gene, mutation)
+
+  # combine mutations
+  df_mut <- rbind(brca, tp53 %>% filter(!is.na(mutation)))
+  write.table(df_mut, paste0(outdir, "CoMut_Muts.tsv"),
+              sep = "\t", row.names = F, quote = F)
+
+  # TEMPUS
+  df_tmp <- data.frame(patients = unique(master$patients),
+                       field = rep("Tempus xT",
+                                   length(unique(master$patients))),
+                       status = c("No", "Yes")[
+                         (
+                           unique(
+                             master$patients) %in%
+                             unique(filter(
+                               read.csv(get.file("Data/molecular_master_file.csv")),
+                               sample_type == "dna")$partner_patient_id
+                             )
+                         ) + 1]
+  )
+  write.table(df_tmp, paste0(outdir,"CoMut_Tempus.tsv"),
+              sep = "\t", row.names = F, quote = F)
+
+  # ST
+  df_st <- master %>%
+    select(patients, platform, sites_binary) %>%
+    arrange(platform) %>%
+    unique()
+
+  write.table(df_st, paste0(outdir,"CoMut_Spatial.tsv"),
+              sep = "\t", row.names = F, quote = F)
+
+  samples <- (df %>% arrange(Stage, Age))$Patient
+  write.table(data.frame(samples = samples),
+              file = paste0(outdir,"CoMut_patorder.tsv"),
+              sep = "\t", row.names = F, quote = F)
+
+  return(master)
+}
+
+HGSC_TableS1A_write_specs <- function(master){
+  # per platform stats for ST
+  per_platform <- master %>%
+    group_by(platform) %>%
+    summarize(n_patients = length(unique(patients)),
+              n_sections = length(samples),
+              n_cells = sum(n_cells)) %>%
+    mutate(
+      target_molecule = rep("RNA",3),
+      n_genes = c(140, 960, 280),
+      tissue_type = c("Whole Tissue", "FOV (0.6mm x 0.9um)",
+                      "Tissue Cores (1.5mm x 1.5mm)"),
+      resolution = rep("Subcellular",3),
+      spatial = rep("Yes", 3))
+
+  # aggregate stats for scRNA-seq
+  files <- Sys.glob(get.file("Data/scRNA_*"))
+  df <- do.call("rbind", mclapply(files, mc.cores = 10, function(x){
+    r1 <- readRDS(x)
+    out <- c(n_patients = length(unique(r1$patients)),
+             n_sections = length(unique(r1$samples)),
+             n_cells = length(r1$cells)
+    )
+    return(out)
+  }))
+  out <- apply(df, 2, sum)
+
+  # combine
+  final <- rbind(per_platform, c(platform = "scRNA",
+                                 out,
+                                 target_molecule = "RNA",
+                                 n_genes = "Whole Transcriptome",
+                                 tissue_type = "Dissociated Tissue",
+                                 resolution = "Single Cell",
+                                 spatial = "No"))
+  row.names = final$platform
+  final <- select(final, spatial, resolution, tissue_type, target_molecule, n_genes,
+                  n_patients, n_sections, n_cells)
+  final <- data.frame(t(final))
+  colnames(final) <- row.names
+  final <- cbind(field = row.names(final), final)
+
+  # write to disk
+  write.xlsx(final, file = get.file("Tables/TableS1A.xlsx"),
+             asTable = T)
+}
+
+HGSC_TableS1B_write_genes <- function(r, q, s){
+  out <- as.data.frame(list.2.mat(list(SMI = r$genes,
+                                       ISS = q$genes,
+                                       MERFISH = s$genes)))
+
+  # write to disk
+  write.xlsx(out, file = get.file("Tables/TableS1B.xlsx"),
+             asTable = T)
+}
+
+HGSC_TableS2A_write_colkeys <- function(){
+  colkeys <- readRDS(get.file("Data/ClinicalDataColumnKey.rds"))
+  write.xlsx(colkeys, file = get.file("Tables/TableS2A.xlsx"),
+             asTable = T)
+}
+
+HGSC_TableS2B_write_fullmetadata <- function(master){
+  write.xlsx(master, file = get.file("Tables/TableS2B.xlsx"),
+             asTable = T)
+}
+
+HGSC_Fig1C_celltype_umaps <- function(r, cell_2_rgb){
+  so_smi <- readRDS(get.file("Results/HGSC_SMI_wUMAP.rds"))
+  so_iss <- readRDS(get.file("Results/HGSC_ISS_wUMAP.rds"))
+  so_mer <- readRDS(get.file("Results/HGSC_MERFISH_wUMAP.rds"))
+
+  plot_ct_umap <- function(r, so, cell_2_rgb, title){
+    col_field <- names(
+      cell_2_rgb
+    )[names(cell_2_rgb) %in% unique(r$cell.types)]
+    p <- DimPlot(so, group.by = "cell.types.nonmal", pt.size = 0.1) +
+      scale_color_manual(values = unlist(
+        lapply(
+          cell_2_rgb[col_field], rgb2hex
+        )
+      ), name = "Cell Types") +
+      theme(axis.line = element_blank(),
+            axis.ticks = element_blank(),
+            axis.title = element_blank(),
+            axis.text = element_blank(),
+            legend.title = element_text(size =12),
+            legend.position = "none") +
+      ggtitle(title)
+    return(p)
+  }
+
+  a = plot_ct_umap(r, so_smi, cell_2_rgb, "Discovery Dataset")
+  b = plot_ct_umap(r, so_iss, cell_2_rgb, "Validation Dataset 1")
+  c = plot_ct_umap(r, so_mer, cell_2_rgb, "Validation Dataset 2")
+
+  col_field <- names(
+    cell_2_rgb
+  )[names(cell_2_rgb) %in% unique(r$cell.types)]
+  p <- DimPlot(so_smi, group.by = "cell.types.nonmal", pt.size = 0.1) +
+    scale_color_manual(values = unlist(
+      lapply(
+        cell_2_rgb[col_field], rgb2hex
+      )
+    ), name = "Cell Types") +
+    theme(legend.title = element_text(size =12))
+  d = as_ggplot(get_legend(p))
+
+  pdf(get.file("Figures/Fig1C.pdf"), width = 10, height = 10)
+  p <- ggarrange(a,b,c,d)
+  print(p)
+  dev.off()
+}
+
+HGSC_TableS3A_write_scRNAsigs <- function(){
+  cell.sig.scRNA <- readRDS(get.file("Results/cell.sigs.scRNA.combined.rds"))
+  cell.sig.CellTypist <- readRDS(get.file("Results/cell.sigs.subtype.CellTypist.rds"))
+  one <- cell.sig.scRNA[c("B.cell", "Endothelial", "Fibroblast",
+                          "Myeloid", "Malignant", "TNK.cell", "Mast.cell")]
+  names(one)[4] <- "Monocyte"
+  two <- cell.sig.CellTypist[c("NK.cells", "Regulatory.T.cells",
+                               "CD8.T.cell", "CD4.T.cell")]
+  out <- c(one, two)
+
+  write.xlsx(data.frame(list.2.mat(out)), file = get.file("Tables/TableS3A.xlsx"),
+             asTable = T)
+}
+
+HGSC_TableS3B_write_SMIsigs <- function(r, so_smi, cell.sig.SMI.subtypes){
+  so_smi <- readRDS(get.file("Results/HGSC_SMI_wUMAP.rds"))
+  cell.sig.SMI.subtypes <- readRDS(get.file("Results/cell.sigs.SMI.subtypes.rds"))
+  q <- subset_list(r, colnames(so_smi))
+  q$cell.types <- sub("_LC", "", q$cell.types)
+  rslts <- scRNA_denovo.cell.type.markers(q)
+  out <- rslts$sig[-8]
+  write.xlsx(data.frame(list.2.mat(c(out, cell.sig.SMI.subtypes))),
+             file = get.file("Tables/TableS3B.xlsx"),
+             asTable = T)
+}
+
+HGSC_Fig1D_celltypes_insitu<- function(r, q, s, cell_2_rgb){
+  # plot 4 samples from the discovery dataset
+  samples <- c("SMI_T13_F001", "SMI_T10_F001", "SMI_T12_F016", "SMI_T10_F021")
+  lapply(samples, function(x){
+    segpath <- Sys.glob(paste0(get.file("Results/Segmentation/"),
+                               x,
+                               "*"))
+    q <- subset_list(r, r$cells[r$samples == x])
+    celltypes <- q$cell.types
+    celltypes <- gsub("_LC", "", q$cell.types)
+    spatial_sample_visualization(segpath,
+                                 celltypes = celltypes,
+                                 cell2rgb = cell_2_rgb,
+                                 samplename = x,
+                                 outfile = get.file(paste0("Figures/Fig1D_",
+                                                           x,
+                                                           ".png")))
+  })
+
+  # plot the select sample from the validation 1 dataset (ISS)
+  x <- "XEN_T10_A2"
+  spot = strsplit(x, split = "_")[[1]][3]
+  segpath <- Sys.glob(paste0(get.file("Results/Segmentation/"),
+                             spot,
+                             "*"))
+  q1 <- subset_list(q, q$cells[q$samples == x])
+  celltypes <- q1$cell.types
+  celltypes <- gsub("_LC", "", q1$cell.types)
+  celltypes
+  spatial_sample_visualization(segpath,
+                               celltypes = celltypes,
+                               cell2rgb = cell_2_rgb,
+                               samplename = x,
+                               outfile = get.file(paste0("Figures/Fig1D_",
+                                                         "XEN_T10_", spot,
+                                                         ".png")))
+
+  # plot select sample from valifation 2 dataset (MERFISH)
+  plot <- filter(data.frame(s[c("cell.types.nonmal", "samples")], s$coor),
+                 samples == "MER_TB21361")
+  p <- ggplot(plot, aes(x = x, y = y, col = cell.types.nonmal)) +
+    geom_point(size = 0.1) +
+    coord_fixed() +
+    theme_classic() +
+    scale_color_manual(values = lapply(cell_2_rgb, rgb2hex)) +
+    theme(panel.background = element_rect(fill = "black"),
+          axis.ticks = element_blank(),
+          axis.text = element_blank(),
+          axis.title = element_blank(),
+          legend.position = "none")
+  png("Figures/Fig1D_MER_TB21361.png",
+      height = 16, width = 16, units = "in", res = 500)
+  print(p)
+  dev.off()
+}
+
+HGSC_Fig1E_coembedding <- function(cell_2_rgb){
+  coembedding <- readRDS(get.file("Results/HGSC_coembedding.rds"))
+
+  # cell types figure
+  a <- ggplot(coembedding[!is.na(coembedding$cell.types),],
+              aes(x = UMAP_1, y = UMAP_2, col = cell.types) ) +
+    geom_point(size = 0.05) +
+    scale_color_manual(values = lapply(cell_2_rgb, opipes::rgb2hex)) +
+    theme_classic() +
+    theme(plot.title = element_text(hjust = 0.5, size = 18, face = "bold"),
+          axis.text = element_blank(),
+          axis.title = element_blank(),
+          axis.line = element_blank(),axis.ticks = element_blank(),
+          legend.text = element_text(size = 18)) +
+    guides(colour = guide_legend("" , override.aes = list(fill="white",
+                                                          size = 2)))
+
+  # dataset figure
+  coembedding$dataset <- factor(coembedding$dataset, levels = c("SMI", "ISS", "MERFISH",
+                                                                "Vazquez-García", "Geistlinger",
+                                                                "Olalekan", "Regner", "Qian",
+                                                                "Shih", "hornburg"))
+  coembedding <- coembedding[sample(1:(dim(coembedding)[1])),]
+  b <- ggplot(coembedding[!is.na(coembedding$cell.types),], aes(x = UMAP_1, y = UMAP_2,
+                                                                col = dataset) ) +
+    geom_point(size = 0.05) +
+    scale_color_manual(values = RColorBrewer::brewer.pal(9, "Set3")) +
+    theme_classic() +
+    theme(plot.title = element_text(hjust = 0.5, size = 18, face = "bold"),
+          axis.text = element_blank(),
+          axis.title = element_blank(),
+          axis.line = element_blank(),axis.ticks = element_blank(),
+          legend.text = element_text(size = 18)) +
+    guides(colour = guide_legend("" , override.aes = list(fill="white",
+                                                          size = 2)))
+
+  # print to disk
+  pdf(get.file("Figures/Fig1E.pdf"),
+      width = 6, height = 4.5)
+  print(a);print(b)
+  dev.off()
+}
+
+HGSC_Fig1F_celltype_composition <- function(r, q, s, cell_2_rgb,
+                                            ct = c("Malignant", "Fibroblast",
+                                                   "Endothelial", "Monocyte",
+                                                   "Mast.cell", "B.cell",
+                                                   "TNK.cell", "Other")){
+  # general composition function
+  compute_composition <- function(r, out, ct) {
+    out <- do.call("rbind", lapply(unique(r$samples), function(s){
+      meta <- (filter(out, samples == s) %>%
+                 select(-cells, -cell.types))[1:(length(ct)),] %>%
+        cbind.data.frame(cell.types = ct) %>%
+        cbind.data.frame(count =  unlist(unname(as.list(table(filter(out, samples == s)$cell.types))))) %>%
+        mutate(proportion = count/(dim(filter(out, samples == s))[1]) )
+      row.names(meta) <- NULL
+      return(meta)
+    }))
+    return(out)
+  }
+  # compute composition for scRNA
+  files = Sys.glob(get.file("Data/scRNA*"))
+  df_sc <- do.call("rbind", lapply(files,
+                                     function(path){
+                                       print(path)
+                                       start <- Sys.time()
+                                       r <- readRDS(path)
+                                       out <- data.frame(r[
+                                         c("cells", "samples",
+                                           "patients", "sites",
+                                           "sites_binary", "cell.types",
+                                           "platform", "dataset")
+                                       ]) %>%
+                                         mutate(
+                                           cell.types = factor(cell.types,
+                                                               levels = ct)
+                                         )
+                                       out <- compute_composition(r, out, ct)
+                                       return(out)
+                                       print(Sys.time() - start)
+                                     }))
+
+  # composition of discovery dataset (SMI)
+  out <- data.frame(data.frame(r[c("cells", "samples", "patients",
+                                   "sites", "sites_binary",
+                                   "cell.types")]),
+                    platform = "ST",
+                    dataset = "SMI") %>%
+    mutate(cell.types = gsub("_LC", "", cell.types)) %>%
+    mutate(cell.types = factor(cell.types, levels = ct))
+  df_smi <- compute_composition(r, out, ct)
+
+  # composition of validation datatset 1 (ISS)
+  out <- data.frame(data.frame(q[c("cells", "samples",
+                                   "patients", "sites",
+                                   "sites_binary", "cell.types")]),
+                    platform = "ST",
+                    dataset = "Xenium") %>%
+    mutate(cell.types = gsub("_LC", "", cell.types)) %>%
+    mutate(cell.types = factor(cell.types, levels = ct))
+  df_xen <- compute_composition(q, out, ct)
+
+  # composition of validation datatset 2 (MERFISH)
+  out <- data.frame(data.frame(s[c("cells", "samples", "patients",
+                                   "sites", "cell.types.nonmal")])) %>%
+    mutate(sites_binary = c("Adnexa", "Omentum")[(sites == "Omentum") + 1],
+           cell.types = factor(cell.types.nonmal, levels = ct)) %>%
+    select(-cell.types.nonmal) %>%
+    mutate(platform = "ST",
+           dataset = "MERFISH")
+  df_mer <- compute_composition(s, out, ct)
+
+  # combine everying together and format data for plotting
+  full <- rbind(df_sc, df_smi, df_xen, df_mer)
+  full <- full %>% mutate(dataset = factor(dataset,
+                                           levels = c("SMI", "Xenium",
+                                                      "MERFISH",
+                                                      "Vazquez-García",
+                                                      "Geistlinger",
+                                                      "Olalekan",
+                                                      "Qian",
+                                                      "Regner",
+                                                      "Shih"))) %>%
+    mutate(count = as.numeric(count),
+           proportion = as.numeric(proportion))
+  order <- (full %>% filter(
+    cell.types == "Malignant") %>% arrange(dataset, proportion))$samples
+  full <- full %>% mutate(samples = factor(samples, levels = order),
+                          cell.types = factor(
+                            cell.types,
+                            levels = c("Malignant", "Fibroblast",
+                                       "Endothelial","Monocyte",
+                                       "Mast.cell", "TNK.cell",
+                                       "B.cell", "Other")))
+  # new color map
+  cell_2_rgb <- list()
+  cell_2_rgb[["B.cell"]] = c(255, 0, 0)
+  cell_2_rgb[["Fibroblast"]] = c(34, 91, 224)
+  cell_2_rgb[["Endothelial"]] = c(166, 128, 71)
+  cell_2_rgb[["Monocyte"]] = c(255, 153, 0)
+  cell_2_rgb[["Mast.cell"]] = c(157, 3, 252)
+  cell_2_rgb[["Malignant"]] = c(7, 224, 0)
+  cell_2_rgb[["TNK.cell"]] = c(255, 247, 0)
+  cell_2_rgb[["Other"]] = c(153, 153, 153)
+
+  # plot to disk
+  pdf(get.file("Figures/Fig1F.pdf"),
+      width = 18, height = 3)
+  p <- ggplot(full, aes(x = samples, y = proportion, fill = cell.types)) +
+    geom_bar(stat = "identity") +
+    facet_grid(~dataset, scales = "free_x", space = "free", labeller = as_labeller(labels)) +
+    scale_fill_manual(values = lapply(cell_2_rgb, rgb2hex)) +
+    theme(axis.text.x = element_blank(),
+          strip.text = element_text(color = "lightgrey"))
+  print(p)
+  g <- ggplot(full, aes(x = samples, y = dataset, fill = dataset)) +
+    geom_bar(stat = "identity") +
+    scale_fill_manual(values = RColorBrewer::brewer.pal(9, "Set3")) +
+    theme(legend.position = "top")
+  as_ggplot(get_legend(g))
+  dev.off()
+}
+#HGSC_Fig1G_hypergeometric <- function()
+
+HGSC_Fig1H_clq <- function(r, cell_2_rgb){
+  # Compute Colocalization Quotient
+  clq <- function(a, b, rs, field) {
+    C_b_a <- sum(rs$neighbors[rs[[field]] == a,b], na.rm = T)
+    N_a <- sum(rs[[field]] == a, na.rm = T)
+    N_b <- sum(rs[[field]] == b, na.rm = T)
+    if(N_b == 0 | N_a == 0) {
+      return(NA)
+    }
+    N <- length(rs$cells)
+    clq <- (C_b_a/N_a)/(N_b/(N - 1))
+    return(clq)
+  }
+
+  # fetch CLQ Values for hypothesis
+  fetch_clq_for_fib_mal <- function(r){
+    out <- do.call("rbind", mclapply(
+      unique(r$samples),
+      mc.cores = 10,
+      function(s){
+        print(s)
+        rs <- subset_list(r, r$cells[r$samples == s])
+        fib <-  clq("Fibroblast", "TNK.cell", rs, "cell.types")
+        mal <- clq("Malignant", "TNK.cell", rs, "cell.types")
+        out <- c(samples = s,
+                 patients = unique(rs$patients),
+                 sites_binary = unique(rs$sites_binary),
+                 CLQ_Fib_TNK = fib,
+                 CLQ_Mal_TNK = mal)
+        return(out)
+      }))
+    return(out)
+  }
+
+  # plot clq wrapper fx
+  plot_clq_boxplots <- function(clq_df, suffix = ""){
+    # do ttest just fyi
+    ttest <- t.test(clq_df$CLQ_Fib_TNK, clq_df$CLQ_Mal_TNK, paired = T)
+    print(ttest)
+    clq_df <- clq_df[complete.cases(clq_df),] %>%
+      mutate(Fibroblast = log2(CLQ_Fib_TNK)) %>%
+      mutate(Malignant = log2(CLQ_Mal_TNK))
+    clq_df <- clq_df[is.finite(clq_df$Fibroblast) & is.finite(clq_df$Malignant),]
+    plt <-  dplyr::select(clq_df, -CLQ_Fib_TNK, -CLQ_Mal_TNK) %>%
+      gather(pair, clq, -patients, -sites_binary, -samples)
+
+    plt <- filter(plt, patients %!in% filter(plt, clq < 1.5)$patients)
+
+    # plot with wilcoxon sum rank test
+    pdf(get.file("Figures/Fig1H.pdf"), width = 4, height = 6)
+    p <- ggpaired(plt, x = "pair", y = "clq",
+                  fill = "pair", line.color = "gray", line.size = 0.4)+
+      stat_compare_means(comparisons = list(c("Fibroblast", "Malignant")),
+                         paired = TRUE, method = "t.test", label = "p.signif") +
+      xlab("") +
+      ylab("Log2 Colocalization with T/NK Cells") +
+      scale_fill_manual(values = lapply(
+        cell_2_rgb[c("Fibroblast", "Malignant"
+        )], rgb2hex)
+      ) +
+      theme(legend.position = "none")
+    print(p)
+    dev.off()
+  }
+
+  # add neighbors
+  r$neighbors <- readRDS(get.file("Results/HGSC_SMI_Neighbors.rds"))
+  subset <- row.names(r$neighbors[complete.cases(r$neighbors),])
+  r1 <- subset_list(r, subset)
+
+  # calculate clq
+  out <- fetch_clq_for_fib_mal(r1)
+
+  # make clq_df
+  clq_df <- data.frame(out) %>%
+    mutate(CLQ_Fib_TNK = as.numeric(CLQ_Fib_TNK),
+           CLQ_Mal_TNK = as.numeric(CLQ_Mal_TNK))
+
+  # plot clq boxplots
+  plot_clq_boxplots(clq_df)
+}

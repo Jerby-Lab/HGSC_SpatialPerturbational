@@ -1028,3 +1028,142 @@ spatial_sample_visualization <- function (seg_path,
 
   EBImage::writeImage(cellmask, files = outfile)
 }
+
+intersect.lists <- function(sig1, sig2){
+  out <- lapply(1:length(sig1), function(x){
+    intersect(sig1[[x]], sig2[[x]])
+  })
+  names(out) <- names(sig1)
+  return(out)
+}
+
+scRNA_denovo.cell.type.markers<-function(r,n.non.mal,q.dr = 0.2){
+  get.FC1<-function(x1,x2){
+    Z<-log2(gene.av[sig[[x1]],x1]/gene.av[sig[[x1]],x2])
+    return(Z)
+  }
+  get.ttest1<-function(x1,x2){
+    b1<-is.element(r$cell.types,x1)
+    b2<-is.element(r$cell.types,x2)
+    b<-b1|b2
+    Z<-t.test.mat(r$tpm[sig[[x1]],b],b1[b])
+    return(Z)
+  }
+  get.ttest<-function(x1){
+    if(length(sig[[x1]])<1){
+      return(NA)
+    }
+    Z<-t(laply(cell.types,function(x2){
+      get.ttest1(x1,x2)[,3]
+    }))
+    colnames(Z)<-cell.types
+    b.mal<-startsWith(cell.types,"Malignant")
+    Z<-cbind.data.frame(n = rowSums(Z>10,na.rm = T),
+                        n.mal = rowSums(Z[,b.mal]>10,na.rm = T),
+                        n.non.mal = rowSums(Z[,!b.mal]>10,na.rm = T),
+                        n.non.T = rowSums(Z[,!b.tcell]>10,na.rm = T),Z)
+    return(Z)
+  }
+  get.FC<-function(x1){
+    Z<-t(laply(cell.types,function(x2) get.FC1(x1,x2)))
+    colnames(Z)<-cell.types
+    b.mal<-startsWith(cell.types,"Malignant")
+    Z<-cbind.data.frame(n = rowSums(Z>0.2,na.rm = T),
+                        n.mal = rowSums(Z[,b.mal]>0.2,na.rm = T),
+                        n.non.mal = rowSums(Z[,!b.mal]>0.2,na.rm = T),
+                        n.non.T = rowSums(Z[,!b.tcell]>0.2,na.rm = T),Z)
+    return(Z)
+  }
+
+  r$b.mal<-r$cell.types=="Malignant"
+  b<-!r$b.mal|is.element(r$samples,get.abundant(r$samples[r$b.mal],abn.c = 50))
+  b<-b&get.abundant(r$cell.types,abn.c = 50,boolean.flag = T)
+  print(paste("Removing",sum(!b),"cells."))
+  r<-set.list(r,b)
+
+  r$cell.types[r$b.mal]<-paste(r$cell.types[r$b.mal],r$patients[r$b.mal],sep = "_")
+  table(r$cell.types)
+  cell.types<-unique(r$cell.types)
+  gene.av <- t(laply(cell.types,function(x) return(rowMeans(r$tpm[,r$cell.types==x]))))
+  gene.dr <- t(laply(cell.types,function(x) return(rowMeans(r$tpm[,r$cell.types==x]>0))))
+
+  colnames(gene.av)<-cell.types
+  colnames(gene.dr)<-cell.types
+  genes<-r$genes
+  sigDR<-apply(gene.dr,2,function(x) genes[x>q.dr])
+  n.mal<-min(length(unique(r$patients[r$b.mal])),40)
+  sigDR$Malignant<-get.abundant(unlist(sigDR[grepl("Malignant",names(sigDR))]),n.mal)
+  print(summary(sigDR))
+  sig<-sigDR
+
+  b.mal<-grepl("Malignant",cell.types)
+  b.tcell<-is.element(cell.types,c("T.cell","CD4.T","CD8.T"))
+  if(missing(n.non.mal)){n.non.mal<-(sum(!b.mal)-1)}
+  n.non.T<-sum(!b.tcell)-1
+
+  Z1<-lapply(cell.types,get.FC)
+  names(Z1)<-cell.types;summary(Z1)
+  # Identify genes which are up-regulated in a non-malignant cell type compared
+  # to all other (or at least n.non.mal) non-malignant cells types, and compared to malignant cells in at least n.mal patients
+  sig<-lapply(Z1, function(X) sort(rownames(X)[X$n.mal>=n.mal&X$n.non.mal>=n.non.mal]));summary(sig)
+  sig[b.tcell]<-lapply(Z1[b.tcell], function(X) sort(rownames(X)[X$n.non.T>=n.non.T&X$n.mal>=n.mal]))
+  sig[b.mal]<-lapply(Z1[b.mal], function(X) sort(rownames(X)[X$n.non.mal>=n.non.mal]))
+  sig$Malignant<-get.abundant(unlist(sig[b.mal]),n.mal)
+  print(summary(sig[c("Malignant",cell.types[!b.mal])]))
+  sigFC<-sig
+
+  Z2<-lapply(cell.types,get.ttest)
+  names(Z2)<-cell.types
+  sig<-lapply(Z2, function(X){
+    if(identical(X,NA)){return(NA)}
+    return(sort(rownames(X)[X$n.mal>=n.mal&X$n.non.mal>=n.non.mal]))});summary(sig)
+  sig[b.tcell]<-lapply(Z2[b.tcell], function(X) sort(rownames(X)[X$n.non.T>=n.non.T&X$n.mal>=n.mal]))
+  sig[b.mal]<-lapply(Z2[b.mal], function(X) sort(rownames(X)[X$n.non.mal>=n.non.mal]))
+  sig$Malignant<-sort(get.abundant(v = unlist(sig[b.mal]),
+                                   abn.c = min(sum(b.mal),40),boolean.flag = F))
+  print(summary(sig[c("Malignant",cell.types[!b.mal])]))
+
+  sig.strict<-intersect.lists(sigFC,sigDR)
+  sig.strict<-intersect.lists(sig,sig.strict)
+  sig.strict<-sig.strict[laply(sig.strict,length)>0]
+  rslts<-list(cohort = r$cohortName,
+              gene.dr = gene.dr,
+              gene.av = gene.av,
+              FC = Z1,ttest = Z2,
+              sigDR = sigDR,
+              sigFC = sigFC,
+              sig.strict = sig.strict,
+              sig.mal = sig[grepl("Malignant_",names(sig))],
+              sig = sig[!grepl("Malignant_",names(sig))])
+  if(sum(is.element(cell.types,c("Myeloid","DC")))==2){
+    rslts<-scRNA_denovo.cell.type.markers.similar.cell.types(rslts,"Myeloid","DC")
+  }
+  max.nonmal<-rowMax(rslts$gene.dr[,!grepl("Malignant",colnames(rslts$gene.dr))])
+  rslts$sig$Malignant.strict<-rslts$sig$Malignant[max.nonmal[rslts$sig$Malignant]<0.2]
+  print(summary(rslts$sig))
+  return(rslts)
+}
+
+set.list<-function (r,b,name){
+  set.field<-function (v,b){
+    d <- dim(v)
+    d.b<-length(b)
+    if(!is.null(d)){
+      if(d[1]==d.b){v <- subset(v,subset = b)}
+      if(d[2]==d.b){v <- v[,b]}
+    }else{if(length(v)==d.b){v <- v[b]}}
+    return(v)
+  }
+  rn<-lapply(r, set.field, b = b)
+  if(!missing(name)){rn$name<-name}
+  return(rn)
+}
+
+rowMax <- function (X) {
+  y <- apply(X, 1, function(x) max(x, na.rm = T))
+  return(y)
+}
+
+rowMin <- function (m) {
+  return(-rowMax(-m))
+}

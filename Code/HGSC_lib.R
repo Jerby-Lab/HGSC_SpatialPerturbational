@@ -23,15 +23,16 @@ source_url("https://raw.githubusercontent.com/obigriffith/biostar-tutorials/mast
 library(heatmap3)
 library(UpSetR)
 
-library(dplyr) # v1.1.1
-library(lmerTest) # v3.1.3
-library(lme4) # v1.1.32
-library(parallel) # v4.0.3
-library(tidyr) # v1.3.0
-library(argparse) # v2.1.6
-library(ggplot2) #v3.4.1
+library(dplyr)
+library(lmerTest)
+library(lme4)
+library(parallel)
+library(tidyr)
+library(argparse)
+library(ggplot2)
 library(pROC)
 library(RColorBrewer)
 library(Seurat)
 library(stringr)
 library(pheatmap)
+library(ggpubr)

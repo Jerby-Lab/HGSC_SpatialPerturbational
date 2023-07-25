@@ -220,9 +220,9 @@ HGSC_Fig2D_mal_drift <- function(mal_drift){
                                      summarize(dist_med = median(pairwise_dist)) %>%
                                      arrange(desc(dist_med)))$patients)
   meds <- mal_drift %>%
-             group_by(patients) %>%
-             summarize(dist = median(pairwise_dist)) %>%
-             arrange(desc(dist))
+    group_by(patients) %>%
+    summarize(dist = median(pairwise_dist)) %>%
+    arrange(desc(dist))
 
   plt2 <- filter(plt) %>%
     merge(meds,
@@ -251,9 +251,9 @@ HGSC_Fig2D_mal_drift <- function(mal_drift){
 HGSC_Fig2E_patient_mal_umap <- function(r,
                                         mal_drift,
                                         pats = c("HGSC38",
-                                                     "HGSC102",
-                                                     "HGSC2",
-                                                     "HGSC58")){
+                                                 "HGSC102",
+                                                 "HGSC2",
+                                                 "HGSC58")){
   # subset patients
   set.seed(1234)
   sub <- function(x){
@@ -315,6 +315,7 @@ HGSC_Fig2E_patient_mal_umap <- function(r,
   dev.off()
 
 }
+
 HGSC_Fig2F_fib_umap<- function(r, morph){
   set.seed(1234)
 
@@ -364,8 +365,8 @@ HGSC_TableS4A_write_daf <- function(daf){
   daf_sig$DAF_up <- up
   daf_sig$DAF_down <- down
   write.xlsx(x = as.data.frame(list.2.mat(daf_sig)),
-                               file = get.file("Tables/TableS4A.xlsx"),
-                               asTable = T)
+             file = get.file("Tables/TableS4A.xlsx"),
+             asTable = T)
 }
 
 HGSC_Fig2G_desmo_boxplots <- function(morph, daf){
@@ -623,7 +624,7 @@ HGSC_TableS4B_write_daf_gsea <- function(r, daf){
                                   user_threshold = 0.05,
                                   correction_method = "fdr"))
   up <- dplyr::select(resultsout$result,
-                term_id, query_size, precision, recall, p_value) %>%
+                      term_id, query_size, precision, recall, p_value) %>%
     mutate(direction = "up")
 
   resultsout2 <- (gprofiler2::gost(union(daf$Fibroblast.paired.down,
@@ -635,7 +636,7 @@ HGSC_TableS4B_write_daf_gsea <- function(r, daf){
                                    correction_method = "fdr"))
 
   down <- dplyr::select(resultsout2$result,
-                      term_id, query_size, precision, recall, p_value) %>%
+                        term_id, query_size, precision, recall, p_value) %>%
     mutate(direction = "down")
 
   write.xlsx(x = rbind(up, down),
@@ -644,77 +645,77 @@ HGSC_TableS4B_write_daf_gsea <- function(r, daf){
 }
 
 HGSC_Fig2J_daf_in_situ <- function(r, daf, cell_2_rgb, s = "SMI_T11_F019"){
-    # subset cells for this sample's fibroblasts
-    q <- subset_list(r, r$cells[r$samples == s &
-                                  r$cell.types == "Fibroblast"])
-    daf_scores <- daf$oe[q$cells, "om"]
+  # subset cells for this sample's fibroblasts
+  q <- subset_list(r, r$cells[r$samples == s &
+                                r$cell.types == "Fibroblast"])
+  daf_scores <- daf$oe[q$cells, "om"]
 
-    # calculate pvalue of daf in situ for this sample
-    pval_df <- data.frame(daf_scores, morph = c("norm","desmo")[unlist(apply(q$coor, 1, function(row){
-      row["y"] > (0.23*row["x"] + 1500)
-    })) + 1], q$coor)
-    out <- wilcox.test(filter(pval_df, morph == "norm")$daf_scores,
-                       filter(pval_df, morph == "desmo")$daf_scores, alternative = "less")
-    print(paste0("p-value for daf in situ: ", out$p.value))
+  # calculate pvalue of daf in situ for this sample
+  pval_df <- data.frame(daf_scores, morph = c("norm","desmo")[unlist(apply(q$coor, 1, function(row){
+    row["y"] > (0.23*row["x"] + 1500)
+  })) + 1], q$coor)
+  out <- wilcox.test(filter(pval_df, morph == "norm")$daf_scores,
+                     filter(pval_df, morph == "desmo")$daf_scores, alternative = "less")
+  print(paste0("p-value for daf in situ: ", out$p.value))
 
-    # make color bar legend
-    names(daf_scores) <- q$cells
-    daf_scores <- scale(daf_scores)
-    daf_scores <- cap_object(daf_scores, 0.01)
-    p <- ggplot(data.frame(daf_scores, q$coor), aes(x = x,
-                                                    y =y,
-                                                    col = daf_scores)) +
-      geom_point() +
-      scale_color_gradient2(low = '#009392', mid = '#f6edbd', high = '#A01C00',
-                            midpoint = 0.8) +
-      coord_fixed() +
-      geom_abline(slope = 0.23, intercept =  1500) + theme_classic()
-    daf_colors <- data.frame(ggplot_build(p)$data[[1]])[,1]
-    names(daf_colors) <- row.names(daf_scores)
-    leg <- ggpubr::as_ggplot(ggpubr::get_legend(p))
+  # make color bar legend
+  names(daf_scores) <- q$cells
+  daf_scores <- scale(daf_scores)
+  daf_scores <- cap_object(daf_scores, 0.01)
+  p <- ggplot(data.frame(daf_scores, q$coor), aes(x = x,
+                                                  y =y,
+                                                  col = daf_scores)) +
+    geom_point() +
+    scale_color_gradient2(low = '#009392', mid = '#f6edbd', high = '#A01C00',
+                          midpoint = 0.8) +
+    coord_fixed() +
+    geom_abline(slope = 0.23, intercept =  1500) + theme_classic()
+  daf_colors <- data.frame(ggplot_build(p)$data[[1]])[,1]
+  names(daf_colors) <- row.names(daf_scores)
+  leg <- ggpubr::as_ggplot(ggpubr::get_legend(p))
 
-    # plot the
-    seg_folder = get.file("Results/Segmentation/")
-    seg_suffix = "_whole-cell_03.csv"
-    cell2rgb <- list("Other" = c(200,200,200),
-                     "Fibroblast" = c(34, 91, 224))
+  # plot the
+  seg_folder = get.file("Results/Segmentation/")
+  seg_suffix = "_whole-cell_03.csv"
+  cell2rgb <- list("Other" = c(200,200,200),
+                   "Fibroblast" = c(34, 91, 224))
 
-    # plot for each sample
-    seg_path = paste0(seg_folder, s, seg_suffix)
+  # plot for each sample
+  seg_path = paste0(seg_folder, s, seg_suffix)
 
-    # subset out cells
-    cells <- r$cells[r$samples == s]
-    q <- subset_list(r, cells)
-    celltypes <- q$cell.types
-    names(celltypes) <- q$cells
-    celltypes[celltypes != "Fibroblast"] <- "Other"
+  # subset out cells
+  cells <- r$cells[r$samples == s]
+  q <- subset_list(r, cells)
+  celltypes <- q$cell.types
+  names(celltypes) <- q$cells
+  celltypes[celltypes != "Fibroblast"] <- "Other"
 
-    # set up the colors of the continuous values
-    contvals <- daf_colors[names(celltypes)]
+  # set up the colors of the continuous values
+  contvals <- daf_colors[names(celltypes)]
 
-    # run visualization for DAF
-    spatial_sample_visualization(seg_path,
-                                 celltypes,
-                                 cell2rgb,
-                                 s,
-                                 background = "white",
-                                 outpath = outpath,
-                                 outfile = get.file("Figures/Fig2J-2.png"),
-                                 cont_field = "Fibroblast",
-                                 contvals = contvals)
+  # run visualization for DAF
+  spatial_sample_visualization(seg_path,
+                               celltypes,
+                               cell2rgb,
+                               s,
+                               background = "white",
+                               outpath = outpath,
+                               outfile = get.file("Figures/Fig2J-2.png"),
+                               cont_field = "Fibroblast",
+                               contvals = contvals)
 
-    # run visualization for cell types for reference
-    q <- subset_list(r, r$cells[r$samples == s])
-    q$cell.types[grepl("_LC", q$cell.types)] <- "LC"
-    cell_2_rgb$LC <- c(0,0,0)
-    spatial_sample_visualization(seg_path,
-                                 celltypes = q$cell.types,
-                                 cell_2_rgb,
-                                 s,
-                                 background = "black",
-                                 outpath = outpath,
-                                 low_qc_color = 0,
-                                 outfile = get.file("Figures/Fig2J-1.png"))
+  # run visualization for cell types for reference
+  q <- subset_list(r, r$cells[r$samples == s])
+  q$cell.types[grepl("_LC", q$cell.types)] <- "LC"
+  cell_2_rgb$LC <- c(0,0,0)
+  spatial_sample_visualization(seg_path,
+                               celltypes = q$cell.types,
+                               cell_2_rgb,
+                               s,
+                               background = "black",
+                               outpath = outpath,
+                               low_qc_color = 0,
+                               outfile = get.file("Figures/Fig2J-1.png"))
 
 }
 

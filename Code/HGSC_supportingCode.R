@@ -1167,3 +1167,58 @@ rowMax <- function (X) {
 rowMin <- function (m) {
   return(-rowMax(-m))
 }
+
+prep4OE <- function (r, n.cat = 50) {
+  r$zscores <- center.matrix(r$tpm, dim = 1, sd.flag = T)
+  X <- 10 * ((2^r$tpm) - 1)
+  r$genes.dist <- log2(rowMeans(X, na.rm = T) + 1)
+  r$genes.dist.q <- discretize.prvt(r$genes.dist, n.cat = n.cat)
+  b <- rowSums(is.na(r$zscores)) == 0
+  if (any(!b)) {
+    r <- set.list(r, b)
+  }
+  r$binZ <- average.mat.rows(r$zscores, r$genes.dist.q, f = colMeans)
+  return(r)
+}
+
+discretize.prvt <- function (v, n.cat, q1) {
+  q1 <- quantile(v, seq(from = (1/n.cat), to = 1, by = (1/n.cat)),
+                 na.rm = T)
+  u <- matrix(data = 1, nrow = length(v))
+  for (i in 2:n.cat) {
+    u[(v >= q1[i - 1]) & (v <= q1[i])] <- i
+  }
+  u <- paste0("Q", u)
+  return(u)
+}
+
+center.matrix <- function (m, dim = 1, sd.flag = F) {
+  if (dim == 1) {
+    zscores <- sweep(m, 1, rowMeans(m, na.rm = T), FUN = "-")
+  }
+  else {
+    zscores <- sweep(m, 2, colMeans(m, na.rm = T), FUN = "-")
+  }
+  if (sd.flag) {
+    zscores <- sweep(zscores, dim, apply(m, dim, function(x) (sd(x,
+                                                                 na.rm = T))), FUN = "/")
+  }
+  return(zscores)
+}
+
+average.mat.rows <- function (m, ids, f = colMeans)
+{
+  ids.u <- sort(unique(ids))
+  m1 <- get.mat(ids.u, colnames(m))
+  for (x in ids.u) {
+    b <- is.element(ids, x)
+    if (sum(b) == 1) {
+      m1[x, ] <- m[b, ]
+    }
+    else {
+      m1[x, ] <- f(m[b, ])
+    }
+  }
+  return(m1)
+}
+

@@ -51,14 +51,14 @@ HGSC_main<-function(){
   fitnessR<-readRDS(get.file("Results/HGSC_CRISPR.rds"))
 
   #8 Regenerate all Figures and Tables.
-  HGSC_Figure1_SpatiomolecularMapping(r = r.smi, q = r.xenium, s = r.merfish,
-                                      cell_2_rgb=cell_2_rgb)
-  HGSC_Figure2_DriftDAF(r = r.smi,
-                        sigs_cna = sigs_cna,sigs = sigs,
-                        mal_umap = mal_umap, mal_drift = mal_drift,
-                        mal_rf= mal_rf, lopo_rf = lopo_rf,
-                        morph = morph, daf = daf,
-                        cell_2_rgb = cell_2_rgb)
+  # HGSC_Figure1_SpatiomolecularMapping(r = r.smi, q = r.xenium, s = r.merfish,
+  #                                     cell_2_rgb=cell_2_rgb)
+  # HGSC_Figure2_DriftDAF(r = r.smi,
+  #                       sigs_cna = sigs_cna,sigs = sigs,
+  #                       mal_umap = mal_umap, mal_drift = mal_drift,
+  #                       mal_rf= mal_rf, lopo_rf = lopo_rf,
+  #                       morph = morph, daf = daf,
+  #                       cell_2_rgb = cell_2_rgb)
   HGSC_Figure3_TIP(rTNK.smi,
                    r.xenium,
                    rTNK.xenium,R)
@@ -66,7 +66,7 @@ HGSC_main<-function(){
                     r1 = rmal.smi,
                     rslts = rslts,
                     s = r.xenium)
-  HGSC_Figure5_CNAs()
+  HGSC_Figure5_CNAs(r=r.smi)
   HGSC_Figure6_perturbMeta(rslts = rslts,rslts1 = rslts1,
                            rslts2 = rslts2,rslts3 = rslts3)
   HGSC_Figure7_perturbOC(r = r.prt,

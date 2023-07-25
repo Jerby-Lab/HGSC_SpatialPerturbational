@@ -71,8 +71,136 @@ HGSC_Fig5C<-function(rslts){
   return()
 }
 
-HGSC_Fig5D <- function(){
+HGSC_Fig5D <- function(r){
+  # Fx Get mTIL Overall Expression
+  get_mtil_expression <- function(r, mtil){
+    r1 <- subset_list(r, subcells = r$cells[r$cell.types == "Malignant"])
+    r1 <- prep4OE(r1)
+    r1$mTIL <- get.OE(r1, mtil)
+    mtil_df_mean <- data.frame(
+      data.frame(r1[c("patients",
+                      "treatment",
+                      "samples",
+                      "sites_binary")])[row.names(r1$mTIL),],
+      r1$mTIL[,grepl("100", colnames(r1$mTIL))]) %>%
+      group_by(patients, treatment, samples, sites_binary) %>%
+      summarize_all(mean) %>%
+      group_by(patients, treatment, sites_binary) %>%
+      select(-samples) %>%
+      summarize_all(mean) %>%
+      rename(mean_hot100 = hot100)
 
+    mtil_df_med <- data.frame(
+      data.frame(r1[c("patients",
+                      "treatment",
+                      "samples",
+                      "sites_binary")])[row.names(r1$mTIL),],
+      r1$mTIL[,grepl("100", colnames(r1$mTIL))]) %>%
+      group_by(patients, treatment, samples, sites_binary) %>%
+      summarize_all(median) %>%
+      group_by(patients, treatment, sites_binary) %>%
+      select(-samples) %>%
+      summarize_all(mean) %>%
+      rename(median_hot100 = hot100)
+
+
+    mtil <- Reduce(function(x, y) merge(x, y, by = c("patients",
+                                                     "treatment",
+                                                     "sites_binary"), all=TRUE),
+                   list(mtil_df_mean, mtil_df_med))
+
+    mtil <- mtil[,c(1:4,7)]
+    mtil <- cast_sites(mtil, 4:5)
+    return(mtil)
+  }
+
+  # Fx for Format Survival Data
+  format_survival_data <- function(features){
+    clin <- readRDS(get.file("Data/Clinical.rds"))
+    surv <- select(clin, patients, specimen, fu_time1, fu_time2, outcome) %>% unique()
+    surv$outcomes_binary <- unlist(lapply(surv$outcome, function(x){
+      if (is.na(x)) {
+        return(NA)
+      } else if (x == "Alive") {
+        return(x)
+      } else {
+        return ("Dead")
+      }
+    }))
+    surv$event <- (surv$outcomes_binary == "Dead") + 0
+    surv <- filter(surv, !is.na(event))
+    surv <- merge(surv, features, by = "patients")
+    surv$fu_time1 <- as.numeric(surv$fu_time1)
+    return(surv)
+  }
+
+  # Fx for Univariate Model
+  univariate_modeling <- function(features, surv){
+    univariate <- do.call("rbind", lapply(colnames(features)[3:6], function(x){
+      tmp <- surv
+      colnames(tmp)[colnames(tmp) == x] <- "x"
+      coxm <- coxph(formula = Surv(fu_time1, event) ~ x, data = tmp)
+      out <- summary(coxm)$coefficients
+      return(out)
+    }))
+    row.names(univariate) <- colnames(features)[3:6]
+    colnames(univariate) <- c("coef", "exp", "se", "z", "p")
+    univariate <- data.frame(univariate) %>% arrange(p)
+    univariate[grepl("Adnexa", row.names(univariate)),]
+    return(univariate)
+  }
+
+  # Fx for Kaplan Meier Curve
+  km_plots <- function(univariate, surv){
+    fu_features <- row.names(
+      univariate[grepl("Adnexa", row.names(univariate)),]
+    )[c(1:2)]
+
+    pdf(get.file("Figures/Fig5D.pdf"),
+        width = 5, height = 5)
+    for (feat in fu_features) {
+      tmp <- surv[,c(c(1:8), which(colnames(surv) == feat))]
+      colnames(tmp)[9] <- "feat"
+
+      cut <- surv_cutpoint(tmp,
+                           time = "fu_time1",
+                           event = "event",
+                           "feat",
+                           minprop = 0.1)
+
+      tmpcat <- surv_categorize(cut)
+
+      p <- (survdiff(Surv(fu_time1, event) ~ feat, tmpcat))$pvalue
+      fit <- survfit(Surv(fu_time1, event) ~ feat, tmpcat)
+      leg = paste0(paste0(c("high ", "low ")),
+                   " (n = ", unlist(table(filter(data.frame(tmpcat),
+                                                 !is.na(feat))$feat)), ")")
+      plot(fit,
+           main = paste0(feat, "\n(p = ", format(round(p, digits = 5),
+                                                 scientific = T), ")"),
+           ylab = "Survival Probability",
+           xlab = "Follow-up Time (Days)",
+           col = c("darkred", "#9ee7ff"),
+           lwd = 2)
+      legend("bottomleft", legend=leg,fill=c("darkred", "#9ee7ff"), bty="n")
+    }
+    dev.off()
+  }
+
+  # load mTIL
+  mtil <- readRDS(get.file("Results/mTIL_sig.rds"))
+
+  # get mTIL expression
+  mtil_df <- get_mtil_expression(r, mtil)
+
+  # format survival
+  surv <- format_survival_data(mtil_df)
+
+  # univariate modeling
+  univariate <- univariate_modeling(mtil_df, surv)
+
+  # make KM plots
+  km_plots(univariate, surv)
 }
 
 HGSC_Fig5E<-function(rslts){

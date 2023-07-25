@@ -1222,3 +1222,15 @@ average.mat.rows <- function (m, ids, f = colMeans)
   return(m1)
 }
 
+cast_sites <- function(df, column_idx){
+  out <- Reduce(function(x, y) merge(x, y, by = c("patients", "treatment")),
+                lapply(column_idx, function(x){
+                  col = colnames(df)[x]
+                  out <- df[,c(1:3, x)] %>%
+                    spread(sites_binary, .data[[col]])
+                  colnames(out)[3:4] <- paste0(col, "_", colnames(out)[3:4])
+                  return(out)
+                }))
+  return(out)
+}
+

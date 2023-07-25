@@ -1,13 +1,14 @@
 #### Results Section 5 ###
 # Figure 6. Perturb-Seq meta-analyses
-# Table S6. mTIL program regulators.
+# Table S6A. mTIL program regulators.
 
-# Figure 6A. CD8 T cell umaps
-# Figure 6B. CD8 T cell TIP genes' association with tumor infiltration in different cell subtypes.
-
+# Figure 6A. Perturb-seq hits in K5621
+# Figure 6B. Perturb-seq hits in RPE1
+# Figure 6C. UMAPs of Perturb-seq hits in K5621
+# Figure 6D. UMAPs of Perturb-seq hits in RPE1
 
 HGSC_Figure6_perturbMeta<-function(rslts,rslts1,rslts2,rslts3){
-  
+
   if(missing(rslts)){
     rslts<-readRDS(get.file("Results/HGSC_mTIL_Malignant2env_TNK.cell.rds"))
     rslts1<-readRDS(get.file("Results/HGSC_mTIL_K562_CRISPRa.rds"))
@@ -20,20 +21,20 @@ HGSC_Figure6_perturbMeta<-function(rslts,rslts1,rslts2,rslts3){
   perturbSeq_sig.reg.barplot(rslts1)
   perturbSeq_sig.reg.barplot(rslts2)
   dev.off();par(font.axis = 2);par(font.lab = 2);par(font = 2)
-  
+
   pdf(get.file("Figures/Fig6B.pdf"))
   perturbSeq_sig.reg.barplot(rslts3,0.2)
   dev.off();par(font.axis = 2);par(font.lab = 2);par(font = 2)
-  
+
   pdf(get.file("Figures/Fig6C.pdf"))
   perturbSeq_OE.umaps(rslts = rslts1$OE,prt = c("IRF1","CEBPA","CEBPE"),name = rslts1$name)
   perturbSeq_OE.umaps(rslts = rslts2$OE,prt = c("PTPN1","KDM1A","CHMP6"),name = rslts2$name)
   dev.off();par(font.axis = 2);par(font.lab = 2);par(font = 2)
-  
+
   pdf(get.file("Figures/Fig6D.pdf"))
   perturbSeq_OE.umaps(rslts = rslts3$OE,prt = c("PSMB5","THAP1"),name = rslts3$name)
   dev.off();par(font.axis = 2);par(font.lab = 2);par(font = 2)
-  
+
 }
 
 perturbSeq_sig.reg.barplot<-function(rslts,cex.names = 0.5){
@@ -45,7 +46,7 @@ perturbSeq_sig.reg.barplot<-function(rslts,cex.names = 0.5){
           main = gsub("_"," ",rslts$name),col = ifelse(X[b,1]>0,"darkgrey","lightblue"))
   legend("top",legend = c("Activate","Repress"), pch = 15,
          col = c("darkgrey","lightblue"))
-  
+
 }
 
 perturbSeq_OE.umaps<-function(rslts,prt,fileName,name){
@@ -53,7 +54,7 @@ perturbSeq_OE.umaps<-function(rslts,prt,fileName,name){
   prt<-prt[order(-abs(X1[,1]))]
   if(missing(prt)){prt<-unlist(rslts$OE.sig)}
   names(prt)<-NULL
-  
+
   l2<-NULL
   for(x in prt){
     r2<-rslts[[x]]
@@ -65,7 +66,7 @@ perturbSeq_OE.umaps<-function(rslts,prt,fileName,name){
                          labels.name = "Program OE")+theme(legend.position="bottom"))
     l2<-c(l2,l1)
   }
-  
+
   if(!missing(fileName)){pdf(fileName)}
   call.multiplot(l2,cols = 3,nplots = 6)
   if(!missing(fileName)){dev.off();par(font.axis = 2);par(font.lab = 2);par(font = 2)}

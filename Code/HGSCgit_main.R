@@ -51,14 +51,14 @@ HGSC_main<-function(){
   fitnessR<-readRDS(get.file("Results/HGSC_CRISPR.rds"))
 
   #8 Regenerate all Figures and Tables.
-  # HGSC_Figure1_SpatiomolecularMapping(r = r.smi, q = r.xenium, s = r.merfish,
-  #                                     cell_2_rgb=cell_2_rgb)
-  # HGSC_Figure2_DriftDAF(r = r.smi,
-  #                       sigs_cna = sigs_cna,sigs = sigs,
-  #                       mal_umap = mal_umap, mal_drift = mal_drift,
-  #                       mal_rf= mal_rf, lopo_rf = lopo_rf,
-  #                       morph = morph, daf = daf,
-  #                       cell_2_rgb = cell_2_rgb)
+  HGSC_Figure1_SpatiomolecularMapping(r = r.smi, q = r.xenium, s = r.merfish,
+                                      cell_2_rgb=cell_2_rgb)
+  HGSC_Figure2_DriftDAF(r = r.smi,
+                        sigs_cna = sigs_cna,sigs = sigs,
+                        mal_umap = mal_umap, mal_drift = mal_drift,
+                        mal_rf= mal_rf, lopo_rf = lopo_rf,
+                        morph = morph, daf = daf,
+                        cell_2_rgb = cell_2_rgb)
   HGSC_Figure3_TIP(rTNK.smi,
                    r.xenium,
                    rTNK.xenium,R)

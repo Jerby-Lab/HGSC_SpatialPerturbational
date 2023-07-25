@@ -1,2 +1,1 @@
-# HGSC_SpatialPerturbational
-Tables reproduced by HGSC_main
+This directory contains resulting Tables S1-7 associated with this study after running the code within _Code_.

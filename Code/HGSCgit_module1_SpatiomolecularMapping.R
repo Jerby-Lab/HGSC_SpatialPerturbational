@@ -484,7 +484,7 @@ HGSC_Fig1D_celltypes_insitu<- function(r, q, s, cell_2_rgb){
           axis.text = element_blank(),
           axis.title = element_blank(),
           legend.position = "none")
-  png("Figures/Fig1D_MER_TB21361.png",
+  png(get.file("Figures/Fig1D_MER_TB21361.png"),
       height = 16, width = 16, units = "in", res = 500)
   print(p)
   dev.off()

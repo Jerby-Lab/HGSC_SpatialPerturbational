@@ -65,7 +65,7 @@ HGSC_main<-function(){
   HGSC_Figure4_mTIL(r = r.smi,
                     r1 = rmal.smi,
                     rslts = rslts,
-                    s = r.xenium)
+                    s = r.merfish)
   HGSC_Figure5_CNAs(r=r.smi)
   HGSC_Figure6_perturbMeta(rslts = rslts,rslts1 = rslts1,
                            rslts2 = rslts2,rslts3 = rslts3)

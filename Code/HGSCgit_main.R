@@ -75,6 +75,6 @@ HGSC_main<-function(){
 }
 
 get.file<-function(file1){
-  dir1 <- "/labs/ljerby/cyyeh/HGSC_SpatialPerturbational/"
+  dir1 <- "~/Projects/HGSC_SpatialPerturbational/"
   return(paste0(dir1,file1))
 }

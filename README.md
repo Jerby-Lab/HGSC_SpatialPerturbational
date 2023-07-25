@@ -1,6 +1,6 @@
 # Spatial mapping of tubo-ovarian cancer and Perturb-seq reveal immune evasion mechanisms
 
-This resource provides the code developed in the study of Yeh, Aguirre, Laveroni et al. **_"Spatial mapping of tubo-ovarian cancer and Perturb-seq reveal immune evasion mechanisms."_**. It reproduces the main figures and tables in the study and serves as a framework to perform integreated analyses with single cell spatial transcriptomics and perturb-seq data. 
+This resource provides the code developed in the study of Yeh, Aguirre, Laveroni _et al_. **_"Spatial mapping of tubo-ovarian cancer and Perturb-seq reveal immune evasion mechanisms."_**. It reproduces the main figures and tables in the study and serves as a framework to perform integreated analyses with single cell spatial transcriptomics and perturb-seq data. 
 
 ## **Software Requirements**
 

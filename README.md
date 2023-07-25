@@ -29,7 +29,7 @@ files <- list.files(paste0("/path/to/your/local/clone/of/this/repo/Code"),
 lapply(files, source)
 HGSC_main()
 ```
-4. You can find the resulting figure panels in _Figures_, and the tables in _Tables_. The estimated run time is ~20 minutes on a laptop. 
+5. You can find the resulting figure panels in _Figures_, and the tables in _Tables_. The estimated run time is ~20 minutes on a laptop. 
 
 # General notes
 

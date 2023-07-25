@@ -20,7 +20,9 @@ To reproduce the figures and tables in Yeh, Aguirre, Laveroni _et al._ download 
 
 3. Download _**HGSC_Results.zip**_. Unzip the file and move the resulting files into the _Results_ directory within the `HGSC_SpatialPerturbational` repository.
 
-4. In Rstudio or within a script, run:
+4. In line 80 of `Code/HGSCgit_main.R` please replace `/path/to/your/local/clone/of/this/repo/` with the true local path to this repository. 
+
+5. In RStudio or within a script, run:
 ```
 files <- list.files(paste0("/path/to/your/local/clone/of/this/repo/Code"),
                   include.dirs = F,
@@ -29,7 +31,9 @@ files <- list.files(paste0("/path/to/your/local/clone/of/this/repo/Code"),
 lapply(files, source)
 HGSC_main()
 ```
-5. You can find the resulting figure panels in _Figures_, and the tables in _Tables_. The estimated run time is ~20 minutes on a laptop. 
+6. You can find the resulting figure panels in _Figures_, and the tables in _Tables_.
+
+The estimated run time is ~20 minutes on the platform aarch64-apple-darwin20 (64-bit) under macOS Ventura 13.4.1 operating system with 10 cores. 
 
 # General notes
 

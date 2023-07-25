@@ -1,4 +1,4 @@
-umap.ggplot<-function(umapX,labels,labels.name = "",main = "",size = 0.2,xlim1, 
+umap.ggplot<-function(umapX,labels,labels.name = "",main = "",size = 0.2,xlim1,
                       ylim1,reorder.flag = F,remove.legend = F){
   if((is.matrix(labels)|is.data.frame(labels))&&ncol(labels)>1){
     p<-lapply(colnames(labels),function(x){
@@ -15,7 +15,7 @@ umap.ggplot<-function(umapX,labels,labels.name = "",main = "",size = 0.2,xlim1,
     labels<-labels[idx]
     umapX<-umapX[idx,]
   }
-  
+
   xylabs <- colnames(umapX)
   colnames(umapX)<-c("UMAP1","UMAP2")
   X <- cbind.data.frame(umapX,col = labels)
@@ -28,14 +28,14 @@ umap.ggplot<-function(umapX,labels,labels.name = "",main = "",size = 0.2,xlim1,
     xlim(xlim1)
     ylim(ylim1)
   }
-  
+
   if(!is.numeric(labels)){
     if(remove.legend){p<-p+theme(legend.position = "none")}
     return(p)
   }
   p<-p+scale_color_gradient2(midpoint=mean(labels),
                              low="blue", mid="gray",high="red", space ="Lab")
-  
+
   if(remove.legend){
     p<-p+theme(legend.position = "none")
   }
@@ -53,12 +53,12 @@ call.multiplot<-function(plotlist,nplots = 4,cols = 2){
 
 multiplot<-function(..., plotlist=NULL, file, cols=1, layout=NULL){
   library(grid)
-  
+
   # Make a list from the ... arguments and plotlist
   plots <- c(list(...), plotlist)
-  
+
   numPlots = length(plots)
-  
+
   # If layout is NULL, then use 'cols' to determine layout
   if (is.null(layout)) {
     # Make the panel
@@ -67,20 +67,20 @@ multiplot<-function(..., plotlist=NULL, file, cols=1, layout=NULL){
     layout <- matrix(seq(1, cols * ceiling(numPlots/cols)),
                      ncol = cols, nrow = ceiling(numPlots/cols))
   }
-  
+
   if (numPlots==1) {
     print(plots[[1]])
-    
+
   } else {
     # Set up the page
     grid.newpage()
     pushViewport(viewport(layout = grid.layout(nrow(layout), ncol(layout))))
-    
+
     # Make each plot, in the correct location
     for (i in 1:numPlots) {
       # Get the i,j matrix positions of the regions that contain this subplot
       matchidx <- as.data.frame(which(layout == i, arr.ind = TRUE))
-      
+
       print(plots[[i]], vp = viewport(layout.pos.row = matchidx$row,
                                       layout.pos.col = matchidx$col))
     }
@@ -113,7 +113,7 @@ discretize.3.labels<-function(X,q = 0.1,verbose = F){
     print(paste("Low quantile<=",q))
     print(paste("High quantile>=",1-q))
   }
-  
+
   f<-function(v){
     b.low<-v<=quantile(v,q,na.rm = T)
     b.high<-v>=quantile(v,1-q,na.rm = T)
@@ -131,7 +131,7 @@ discretize.3.labels<-function(X,q = 0.1,verbose = F){
 call.plot.plus<-function(x, y = NULL,labels,b.top,red.top = F,regression.flag = F,my.col = NULL,set.flag = F,cor.flag = F,
                          pch=16,cex=0.3,main="",ylab = "tSNE2",xlab = "tSNE1", cex.axis = 0.6,
                          add.N = F,grey.zeros = F,legend.flag = T){
-  
+
   regl<-call.plot(x = x,y = y,labels,regression.flag,my.col = my.col,
                   set.flag = set.flag,cor.flag = cor.flag,
                   pch = pch,cex = cex,main = main,ylab = ylab,xlab = xlab,
@@ -157,7 +157,7 @@ call.plot.plus<-function(x, y = NULL,labels,b.top,red.top = F,regression.flag = 
     points(x[b.top],y[b.top],cex = cex,col = my.col[b.top],pch = 16)
   }
   return(regl)
-  
+
 }
 
 call.plot<-function(x, y = NULL,labels,regression.flag = F,my.col = NULL,set.flag = F,cor.flag = F,legend.flag = T,
@@ -178,13 +178,13 @@ call.plot<-function(x, y = NULL,labels,regression.flag = F,my.col = NULL,set.fla
     if(missing(ylab)){ylab<-colnames(x)[2]}
     y<-x[,2];x<-x[,1]
   }
-  
+
   if(cor.flag){
     xy.cor<-spearman.cor(y,x)
     main <- paste(main, "\nR =",format(xy.cor[1],digits = 2),"P =",format(xy.cor[2],scientific = T,digits = 2))
   }
-  plot(x,y,col=my.col,pch=pch,cex=cex,main=main,ylab=ylab,xlab = xlab,cex.axis = cex.axis,cex.main = cex.main)  
-  
+  plot(x,y,col=my.col,pch=pch,cex=cex,main=main,ylab=ylab,xlab = xlab,cex.axis = cex.axis,cex.main = cex.main)
+
   labels<-gsub(" ","_",labels)
   l<-(max(x,na.rm = T)-min(x,na.rm = T))/20
   if(length(unique(labels))<30&legend.flag){
@@ -196,7 +196,7 @@ call.plot<-function(x, y = NULL,labels,regression.flag = F,my.col = NULL,set.fla
       print(as.integer(get.strsplit(map,' ',3)))
       legend(x = max(x,na.rm = T)+l,
              y = max(y,na.rm = T),
-             legend = get.strsplit(map,' ',1), 
+             legend = get.strsplit(map,' ',1),
              col = get.strsplit(map,' ',2),
              inset=c(-0.5,0),
              bty = "n",lty= NA, lwd = 0,cex = 0.7,pch = pch)
@@ -204,11 +204,11 @@ call.plot<-function(x, y = NULL,labels,regression.flag = F,my.col = NULL,set.fla
       map<-unique(paste(labels,my.col,pch))
       legend(x = max(x,na.rm = T)+l,
              y = max(y,na.rm = T),inset = c(-0.5,0),
-             legend = gsub("_"," ",get.strsplit(map,' ',1)), 
+             legend = gsub("_"," ",get.strsplit(map,' ',1)),
              col = get.strsplit(map,' ',2),xpd = T,
              bty = "n",lty= NA, lwd = 0,cex = 0.7,pch = pch)
     }
-    
+
   }
   if(regression.flag ==1){
     b<-!is.na(x)&!is.na(y)
@@ -224,10 +224,10 @@ call.plot<-function(x, y = NULL,labels,regression.flag = F,my.col = NULL,set.fla
       v<-lowess(x[bi],y[bi])
       lines(v)
     }
-    
+
   }
-  
-  
+
+
 }
 
 call.boxplot<-function (y,x,unique.x, f = median,
@@ -236,7 +236,7 @@ call.boxplot<-function (y,x,unique.x, f = median,
                         cex = 0.7,order.flag = T,b.ref = NULL,p.val.show = is.null(b.ref)){
   b<-is.infinite(y)|is.na(y)
   if(length(labels)==length(x)){
-    labels<-labels[!b] 
+    labels<-labels[!b]
   }
   y<-y[!b];x<-x[!b]
   if(p.val.show){
@@ -252,23 +252,23 @@ call.boxplot<-function (y,x,unique.x, f = median,
     main <- paste0(main,"\n(",my.format.pval(t.test.labels(y,b.ref,alternative = "greater")),", ",
                    "AUC = ",round(get.auc(y,b.ref),2),")")
   }
-  
+
   if(missing(unique.x)){
     unique.x<-unique(x)
     x.med<-apply(as.matrix(unique.x),1,function(xi) f(y[is.element(x,xi)]))
     names(x.med)<-unique.x
     if(order.flag){
-      unique.x<-unique.x[order(x.med)]  
+      unique.x<-unique.x[order(x.med)]
     }
     #labels<-labels[unique.x]
   }
-  
+
   #idx<-order(y.med[y])
   x <- data.frame(name = x, val = y)
   x$name <- factor(x$name, levels = unique.x)
   p <- ggplot(x, aes(x = name, y = val,fill = labels)) + #geom_point(stat="identity") +
-    labs(y = ylab, title = main, x = xlab) + 
-    geom_boxplot() + theme_bw() + 
+    labs(y = ylab, title = main, x = xlab) +
+    geom_boxplot() + theme_bw() +
     theme(axis.text.x = element_text(angle = 45, hjust = 1,size = rel(cex)),
           axis.text.y = element_text(size = rel(cex)),
           axis.title.y = element_text(size = rel(cex)),
@@ -279,7 +279,7 @@ call.boxplot<-function (y,x,unique.x, f = median,
                   panel.grid.major = element_blank())
   }
   return(p)
-  #labs(title = paste(screen.name,'ANOVA p-value = ',p.anova)) + 
+  #labs(title = paste(screen.name,'ANOVA p-value = ',p.anova)) +
 }
 
 get.top.cor<-function(m,q = 100,min.ci = 0,idx = NULL, add.prefix ="",sort.flag = T){
@@ -312,7 +312,7 @@ get.top.elements<-function(m,q = 100,min.ci = NULL,main = "",sort.flag = T){
     }else{
       top.l[[i]]<-v[b][order(m[b,i])]
     }
-    
+
   }
   if(main!=""){main<-paste0(main,".")}
   names(top.l)<-paste0(main,colnames(m))
@@ -344,7 +344,7 @@ union.lists<-function(l1,l2,unique.flag = T,disregard.names = F){
   }else{
     L<-lapply(names(l1), function(x) c(l1[[x]],l2[[x]]))
   }
-  
+
   names(L)<-names(l1)
   return(L)
 }
@@ -400,7 +400,7 @@ t.test.mat<-function(m,b,two.sided=F,rankf = F,fold.changeF = F,BH.flag = F){
     p$BH.more<-p.adjust(p$more,method = "BH")
     p$BH.less<-p.adjust(p$less,method = "BH")
   }
-  
+
   return(p)
 }
 
@@ -516,7 +516,7 @@ call.heatmap<-function(m,main = '',col.labels = NULL,row.labels = NULL,k = 3,fil
     m<-m[,b.col]
     if(!is.null(col.labels)){col.labels<-subset(col.labels,b.col)}
   }
-  
+
   if(cluster.flag!="none"){
     if(method =="cor"){
       hc <- hclust(as.dist(2-cor(m)), method="complete");
@@ -535,12 +535,12 @@ call.heatmap<-function(m,main = '',col.labels = NULL,row.labels = NULL,k = 3,fil
     }else{
       col.labels<-cbind.data.frame(clusters = paste0("C",cutree(hc, k = k)))
     }
-    
+
   }else{
     Rowv <- NA;Colv <- NA
     hc<-T;hr<-T
   }
-  
+
   col.col <- NULL
   if(!is.null(col.labels)){
     col.labels<-as.data.frame(col.labels)
@@ -554,7 +554,7 @@ call.heatmap<-function(m,main = '',col.labels = NULL,row.labels = NULL,k = 3,fil
     row.labels<-t(as.matrix(row.labels))
     rownames(row.col)<-rownames(row.labels)
   }
-  
+
   myheatcol <- redblue(50)
   myheatcol <- c(rep(myheatcol[1],10),myheatcol,rep(myheatcol[length(myheatcol)],10))
   myheatcol<-myheatcol[seq(length(myheatcol),1,-1)]
@@ -568,13 +568,13 @@ call.heatmap<-function(m,main = '',col.labels = NULL,row.labels = NULL,k = 3,fil
   if(!is.null(row.labels)&&identical(col.labels,t(row.labels))){
     row.labels<-NULL
   }
-  
+
   if(!is.null(col.labels)){
     coltitles<-colnames(col.labels)[1]
     col.col<-as.matrix(col.col[,!duplicated(t(col.labels))])
     col.labels<-as.matrix(col.labels[,!duplicated(t(col.labels))])
     n1<-ifelse(is.matrix(col.labels),ncol(col.labels),1)
-    
+
     for(i in 1:n1){
       v<-unique(paste(col.col[,i],col.labels[,i],sep = "?"))
       legend(legend.place[i],legend = get.strsplit(v,"?",2),col=get.strsplit(v,"?",1),
@@ -608,7 +608,7 @@ plot.heatmap<-function(m,main,Rowv,Colv,m.value,cexRow,cexCol,
               col = myheatcol, density.info="none",margins=c(10,10),
               ColSideColorsSize = ColSideColorsSize,
               RowSideColorsSize = ColSideColorsSize,scale = scale,#RowAxisColors = 1,
-              key=TRUE, 
+              key=TRUE,
               KeyValueName = m.value,
               symm = symm,cexRow=cexRow,cexCol=cexCol,
               dendrogram = cluster.flag,
@@ -630,7 +630,7 @@ labels.2.colors<-function(x.class,x = NULL,number.flag = F,color.spec = "hsv"){
   palette("default")
   call_col<-c("black","red","cadetblue","gray","darkgreen","darkorange","darkviolet","gold3",
               "lightpink","deeppink2","deepskyblue",palette(),rainbow(20))
-  
+
   no.classes<-length(unique(x.class))
   if(number.flag){
     call_col<-match(x.class,sort(unique(x.class)))
@@ -730,4 +730,301 @@ get.abundant<-function(v,abn.c = 2,boolean.flag = F,top,decreasing = T){
     return(b)
   }
   return(abn.names)
+}
+
+`%!in%` <- Negate(`%in%`)
+
+transfer_data_list_to_so <- function(r,
+                                       so,
+                                       transfer_list = c("coor",
+                                                         "samples",
+                                                         "TMAs",
+                                                         "patients",
+                                                         "samples",
+                                                         "sites",
+                                                         "treatment",
+                                                         "cell.types",
+                                                         "cell.types2"))
+{
+  for (field in transfer_list) {
+    if (is.null(dim(r[[field]]))) {
+      so@meta.data[[field]] <- r[[field]]
+    }
+    else {
+      so@meta.data <- cbind(so@meta.data, r[[field]])
+    }
+  }
+  return(so)
+}
+
+seuratify <- function(counts, prj_name = "") {
+  so <- Seurat::CreateSeuratObject(counts, project = prj_name)
+  so@meta.data$cellid <- row.names(so@meta.data)
+  return(so)
+}
+
+cap_object <- function (X, q) {
+  ceil_q <- 1 - q
+  ceil <- quantile(X, ceil_q)
+  floor <- quantile(X, q)
+  X[X > ceil] <- ceil
+  X[X < floor] <- floor
+  return(X)
+}
+
+rgb2hex <- function (x) {
+  hex = rgb(x[1], x[2], x[3], maxColorValue = 255)
+  return(hex)
+}
+
+get.OE <- function (r, sig){
+  scores <- get.OE1(r, sig)
+  names(sig) <- gsub(" ", ".", names(sig))
+  two.sided <- unique(gsub(".up", "", gsub(".down", "", names(sig))))
+  b <- is.element(paste0(two.sided, ".up"), names(sig)) & is.element(paste0(two.sided,
+                                                                            ".down"), names(sig))
+  if (any(b)) {
+    two.sided <- two.sided[b]
+    scores2 <- as.matrix(scores[, paste0(two.sided, ".up")] -
+                           scores[, paste0(two.sided, ".down")])
+    colnames(scores2) <- two.sided
+    scores <- cbind(scores2, scores)
+  }
+  if (!is.null(r$cells)) {
+    rownames(scores) <- r$cells
+  }
+  else {
+    if (!is.null(r$samples)) {
+      rownames(scores) <- r$samples
+    }
+  }
+  return(scores)
+}
+
+get.OE1 <- function (r, sig){
+  if (is.list(sig)) {
+    scores <- t(plyr::laply(sig, function(g) get.OE1(r, g)))
+    rownames(scores) <- r$cells
+    colnames(scores) <- names(sig)
+    return(scores)
+  }
+  g <- sig
+  b <- is.element(r$genes, g)
+  assertthat::is.string(rownames(r$binZ)[1])
+  n1 <- plyr::laply(rownames(r$binZ), function(x) sum(b[r$genes.dist.q ==
+                                                          x]))
+  rand.scores <- t(r$binZ) %*% n1
+  if (sum(b) == 1) {
+    raw.scores <- r$zscores[b, ]
+  }
+  else {
+    raw.scores <- colSums(r$zscores[b, ])
+  }
+  scores <- (raw.scores - rand.scores)/sum(b)
+  return(scores)
+}
+
+scale_and_center <- function (X, MARGIN){
+  X_norm = t(apply(X, MARGIN, function(x) {
+    loc = mean(x, na.rm = T)
+    center = x - loc
+    scale = center/sd(x)
+    return(scale)
+  }))
+  return(X_norm)
+}
+
+subset_list <- function (r, subcells) {
+  n_cells <- length(r$cells)
+  n_genes <- length(r$genes)
+  q <- lapply(r, function(x) {
+    if (is.null(dim(x))) {
+      if (length(x) == n_cells) {
+        return(x[r$cells %in% subcells])
+      }
+      else {
+        return(x)
+      }
+    }
+    else if (dim(x)[2] == n_cells) {
+      return(x[, r$cells %in% subcells])
+    }
+    else if (dim(x)[1] == n_cells) {
+      return(x[r$cells %in% subcells, ])
+    }
+    else {
+      return(x)
+    }
+  })
+  return(q)
+}
+
+spearman.cor <- function (v1, v2 = NULL,
+                          method = "spearman",
+                          use = "pairwise.complete.obs",
+                          match.flag = F,
+                          alternative = "two.sided",
+                          upper.tri.flag = F)
+{
+  if (is.null(v2)) {
+    v2 <- v1
+  }
+  if (!is.matrix(v1)) {
+    v1 <- as.matrix(v1)
+  }
+  if (!is.matrix(v2)) {
+    v2 <- as.matrix(v2)
+  }
+  if (match.flag) {
+    n = ncol(v1)
+    if (is.null(colnames(v1))) {
+      colnames(v1) <- 1:ncol(v1)
+    }
+    results <- get.mat(m.cols = c("R", "P"), m.rows = colnames(v1))
+    for (i in 1:ncol(v1)) {
+      c.i <- cor.test(v1[, i], v2[, i], method = method,
+                      use = use, alternative = alternative)
+      results[i, 1] <- c.i$estimate
+      results[i, 2] <- c.i$p.value
+    }
+  }
+  else {
+    n1 = ncol(v1)
+    m <- matrix(nrow = n1, ncol = ncol(v2))
+    rownames(m) <- colnames(v1)
+    colnames(m) <- colnames(v2)
+    results <- list(cor = m, p = m)
+    for (i in 1:n1) {
+      f <- function(x) {
+        c.i <- cor.test(v1[, i], x, method = method,
+                        use = use, alternative = alternative)
+        c(c.i$estimate, c.i$p.value)
+      }
+      c.i <- apply(v2, 2, f)
+      results$cor[i, ] <- c.i[1, ]
+      results$p[i, ] <- c.i[2, ]
+    }
+    if (ncol(v2) == 1) {
+      results <- cbind(results$cor, results$p)
+      colnames(results) <- c("R", "P")
+    }
+  }
+  if (upper.tri.flag) {
+    results$up <- cbind(results$cor[upper.tri(results$cor)],
+                        results$p[upper.tri(results$p)])
+  }
+  return(results)
+}
+
+get.top.cor <- function (m, q = 100, min.ci = 0, idx = NULL, add.prefix = "") {
+  m <- as.matrix(m)
+  if (is.null(colnames(m))) {
+    colnames(m) <- 1:ncol(m)
+  }
+  m.pos <- (-m)
+  m.neg <- m
+  colnames(m.pos) <- paste0(colnames(m.pos), ".up")
+  colnames(m.neg) <- paste0(colnames(m.neg), ".down")
+  v <- get.top.elements(cbind(m.pos, m.neg), q, min.ci = (-abs(min.ci)))
+  names(v) <- c(colnames(m.pos), colnames(m.neg))
+  if (!is.null(idx)) {
+    v <- v[paste(idx, c("up", "down"), sep = ".")]
+  }
+  names(v) <- paste0(add.prefix, names(v))
+  return(v)
+}
+
+get.top.elements <- function (m, q = 100, min.ci = NULL, main = "") {
+  top.l <- list()
+  v <- rownames(m)
+  for (i in 1:ncol(m)) {
+    mi <- m[, i]
+    mi <- mi[!is.na(mi)]
+    idx <- order(mi, decreasing = F)
+    ci <- mi[idx[min(q, length(mi))]]
+    ci <- min(ci, min.ci)
+    b <- m[, i] <= ci
+    b[is.na(m[, i])] <- F
+    top.l[[i]] <- sort(v[b])
+  }
+  if (main != "") {
+    main <- paste0(main, ".")
+  }
+  names(top.l) <- paste0(main, colnames(m))
+  return(top.l)
+}
+
+spatial_sample_visualization <- function (seg_path,
+                                          celltypes,
+                                          cell2rgb,
+                                          samplename,
+                                          background = "black",
+                                          outpath = "~/",
+                                          outfile = "out.jpg",
+                                          cont_field = "",
+                                          low_qc_color = 0,
+                                          contvals = NULL)
+{
+  cellseg = read.csv(seg_path)
+  colnames(cellseg) <- unlist(lapply(colnames(cellseg), function(x) {
+    strsplit(x, split = "X0.")[[1]][2]
+  }))
+  colnames(cellseg)[1] <- "0"
+  cellmask <- cellseg
+  cellmask[cellmask != 0] <- low_qc_color
+  if (background == "white") {
+    cellmask[cellmask == 0] <- 1
+  }
+  else {
+    cellmask[cellmask == 0] <- 0
+  }
+  cellmask <- EBImage::Image(as.matrix(cellmask))
+  cellmask <- EBImage::channel(cellmask, "rgb")
+  levels <- setdiff(unique(celltypes), cont_field)
+  for (type in levels) {
+    print(type)
+    cellids = names(celltypes[celltypes == type])
+    print(length(cellids))
+    cellidx = unlist(lapply(cellids, function(x) as.integer(strsplit(x,
+                                                                     split = "c")[[1]][2])))
+    celltype_mask <- t(apply(cellseg, 1, function(x) {
+      x %in% cellidx
+    }))
+    celltype_rgb_1 <- cellmask@.Data[, , 1]
+    celltype_rgb_1[celltype_mask] <- as.numeric(cell2rgb[[type]][1])/255
+    cellmask[, , 1] <- celltype_rgb_1
+    celltype_rgb_2 <- cellmask@.Data[, , 2]
+    celltype_rgb_2[celltype_mask] <- as.numeric(cell2rgb[[type]][2])/255
+    cellmask[, , 2] <- celltype_rgb_2
+    celltype_rgb_3 <- cellmask@.Data[, , 3]
+    celltype_rgb_3[celltype_mask] <- as.numeric(cell2rgb[[type]][3])/255
+    cellmask[, , 3] <- celltype_rgb_3
+  }
+  if (cont_field != "") {
+    cellids = names(celltypes[celltypes == cont_field])
+    print(cont_field)
+    print(length(cellids))
+    cellidx = unlist(lapply(cellids, function(x) as.integer(strsplit(x,
+                                                                     split = "c")[[1]][2])))
+    celltype_mask <- t(apply(cellseg, 1, function(x) {
+      x %in% cellidx
+    }))
+    cellids <- paste0(samplename, "_c", cellseg[celltype_mask])
+    colormap <- t(sapply(unique(contvals), simplify = T,
+                         grDevices::col2rgb))/255
+    celltype_rgb_1 <- cellmask@.Data[, , 1]
+    celltype_rgb_1[celltype_mask] <- colormap[contvals[cellids],
+                                              1]
+    cellmask[, , 1] <- celltype_rgb_1
+    celltype_rgb_2 <- cellmask@.Data[, , 2]
+    celltype_rgb_2[celltype_mask] <- colormap[contvals[cellids],
+                                              2]
+    cellmask[, , 2] <- celltype_rgb_2
+    celltype_rgb_3 <- cellmask@.Data[, , 3]
+    celltype_rgb_3[celltype_mask] <- colormap[contvals[cellids],
+                                              3]
+    cellmask[, , 3] <- celltype_rgb_3
+  }
+
+  EBImage::writeImage(cellmask, files = outfile)
 }

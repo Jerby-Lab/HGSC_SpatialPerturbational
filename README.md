@@ -19,11 +19,6 @@ To reproduce the figures and tables in Yeh, Aguirre, Laveroni _et al._ download 
 
 5. In RStudio or within a script, run:
 ```
-files <- list.files(paste0("/path/to/your/local/clone/of/this/repo/Code"),
-                  include.dirs = F,
-                  pattern = ".R",
-                  full.names = T)
-lapply(files, source)
 HGSC_main()
 ```
 6. You can find the resulting figure panels in _Figures_, and the tables in _Tables_.

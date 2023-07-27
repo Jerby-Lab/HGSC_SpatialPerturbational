@@ -7,19 +7,17 @@ This resource provides the code developed in the study of Yeh, Aguirre, Laveroni
 The raw and processed data will be provided on the Gene Expression Omnibus and Zenodo **when the study is officially published**. 
 
 ## **Quick start**
-To reproduce the figures and tables in Yeh, Aguirre, Laveroni _et al._ download _**HGSC_Data.zip**_, follow the steps below: 
+Follow the steps below to reproduce the figures and tables in Yeh, Aguirre, Laveroni _et al._: 
 
 1. Clone this repository by executing `git clone https://github.com/Jerby-Lab/HGSC_SpatialPerturbational/`. 
 
 2. Download _**HGSC_Data.zip**_, place and unzip it in the `HGSC_SpatialPerturbational` repository. This will result in two additional direcotries: (1) Data, and (2) Results.
 
-4. In line 81 of `Code/HGSCgit_main.R` please replace `/path/to/your/local/clone/of/this/repo/` with the local path to this repository as it appears in your local machine. 
+3. In line 81 of `Code/HGSCgit_main.R` please replace `/path/to/your/local/clone/of/this/repo/` with the local path to this repository as it appears in your local machine. 
 
-5. In RStudio or within a script, run: ```HGSC_main()```
+4. In RStudio or within a script, run: ```HGSC_main()```
    
-7. You can find the resulting figure panels in _Figures_, and the tables in _Tables_.
-
-The estimated run time is ~20 minutes on the platform aarch64-apple-darwin20 (64-bit) under macOS Ventura 13.4.1 operating system with 10 cores. 
+You can find the resulting figure panels in _Figures_, and the tables in _Tables_. The estimated run time is ~20 minutes on the platform aarch64-apple-darwin20 (64-bit) under macOS Ventura 13.4.1 operating system with 10 cores. 
 
 ## Citation
 

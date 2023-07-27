@@ -12,6 +12,8 @@
 #7 Perturb-Seq and genetic screen analyses (Figure 7, Table S7)
 
 HGSC_main<-function(){
+  if(!file.exists(get.file("Figures/Fig3A.pdf"))){HGSC_source()}
+  
   #1 Download Presets and Preprocessed Data for Spatiomolecular Profiling Analyses
   cell_2_rgb <- readRDS(get.file("Data/Cell_Colors.rds"))
   r.smi<-readRDS(get.file("Data/SMI_data.rds"))
@@ -28,7 +30,7 @@ HGSC_main<-function(){
   morph <- readRDS(get.file("Data/StromalMorphology.rds"))
   daf <- readRDS(get.file("Results/HGSC_DAF.rds"))
 
-  #3 Download Tumor Infiltration Programs (TIP).
+  #3 Download T/NK and malignant spatial data.
   rTNK.smi<-HGSC_SMI.process.CD8()
   rmal.smi<-HGSC_SMI.process.mal()
   rTNK.xenium<-HGSC_Xenium.process.CD8.NK(r = r.xenium)
@@ -50,7 +52,7 @@ HGSC_main<-function(){
   mTIL.sig<-readRDS(get.file("Results/HGSC_mTIL.rds"))
   fitnessR<-readRDS(get.file("Results/HGSC_CRISPR.rds"))
 
-  #8 Regenerate all Figures and Tables.
+  #8 Regenerate main Figures and Tables.
   HGSC_Figure1_SpatiomolecularMapping(r = r.smi, q = r.xenium, s = r.merfish,
                                       cell_2_rgb=cell_2_rgb)
   HGSC_Figure2_DriftDAF(r = r.smi,
@@ -76,7 +78,16 @@ HGSC_main<-function(){
 }
 
 get.file<-function(file1){
-  # dir1 <- "~/Projects/HGSC_SpatialPerturbational/"
-  dir1 <- "/path/to/your/local/clone/of/this/repo/Code"
+  dir1 <- "/path/to/your/local/clone/of/this/repo/"
   return(paste0(dir1,file1))
+}
+
+HGSC_source<-function(){
+  print("Sourcing HGSC_SpatialPerturbational GitHub repository.")
+  files <- list.files(get.file("Code"),
+                      include.dirs = F,
+                      pattern = ".R",
+                      full.names = T)
+  lapply(files, source)
+  return()
 }

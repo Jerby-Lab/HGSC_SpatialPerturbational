@@ -16,7 +16,7 @@ Follow the steps below to reproduce the figures and tables in Yeh, Aguirre, Lave
 3. In line 81 of `Code/HGSCgit_main.R` please replace `/path/to/your/local/clone/of/this/repo/` with the local path to this repository as it appears in your local machine. 
 
 4. In RStudio or within a script, run: ```HGSC_main()```
-   
+
 You can find the resulting figure panels in _Figures_, and the tables in _Tables_. The estimated run time is ~20 minutes on the platform aarch64-apple-darwin20 (64-bit) under macOS Ventura 13.4.1 operating system with 10 cores. 
 
 ## Citation

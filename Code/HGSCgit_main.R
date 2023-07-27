@@ -1,6 +1,6 @@
 # The code below provides a step-by-step guide
-# to regenerate all the figures of the manuscript
-# in its final version as of 07/24/2023.
+# to regenerate the figures of the manuscript
+# in its final version as of July 2023.
 
 # Result Sections
 #1 Data processing and annotations (Figure 1, Tables S1-S3)

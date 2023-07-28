@@ -1,11 +1,8 @@
 #### Results Section 5 ###
 # Figure 7. Perturb-Seq meta-analyses
 
-# Figure 7B. CD8 T cell umaps
-# Figure 7C. CD8 T cell TIP genes' association with tumor infiltration in different cell subtypes.
-
 # Figure 7. High content CRISPR screen in ovarian cancer cells in monoculture and co-culture with targeting NK and T cells.
-# 7A. Overview of experimental design.
+# 7A. Overview of experimental design (graphics only).
 # 7B. CRISPR-based differential fitness.
 # 7C. Perturb-Seq UMAP.
 # 7D. Perturb-Seq-based mTIL regulators.

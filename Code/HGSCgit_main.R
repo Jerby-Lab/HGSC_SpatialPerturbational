@@ -6,7 +6,7 @@
 #1 Data processing and annotations (Figure 1, Supplementary Tables 1-3)
 #2 Effector T Cells Infiltrate the Tumor (Figure 2, Supplementary Tables 4-5)
 #3 Malignant TIL (mTIL) program (Figure 3, Supplementary Table 6)
-#4 CNAs mapping to mTIL and TIL levels (Figure 4, Supplementary Figure 5)
+#4 CNAs mapping to mTIL and TIL levels (Figure 4)
 #5 Perturb-Seq meta-analyses (Figure 5, Supplementary Table 6)
 #6 Perturb-Seq and genetic screen analyses (Figure 6, Supplementary Table 7)
 
@@ -46,17 +46,23 @@ HGSC_main<-function(){
   fitnessR<-readRDS(get.file("Results/HGSC_CRISPR.rds"))
 
   #8 Regenerate main Figures and Tables.
-  HGSC_Figure1_SpatiomolecularMapping(r = r.smi, q = r.xenium, s = r.merfish,
-                                      cell_2_rgb=cell_2_rgb)
+  # HGSC_Figure1_SpatiomolecularMapping(r = r.smi, q = r.xenium, s = r.merfish,
+                                      # cell_2_rgb=cell_2_rgb)
   # HGSC_Figure2_DriftDAF(r = r.smi,
   #                       sigs_cna = sigs_cna,sigs = sigs,
   #                       mal_umap = mal_umap, mal_drift = mal_drift,
   #                       mal_rf= mal_rf, lopo_rf = lopo_rf,
   #                       morph = morph, daf = daf,
   #                       cell_2_rgb = cell_2_rgb)
-  HGSC_Figure3_TIP(rTNK.smi,
-                   r.xenium,
-                   rTNK.xenium,R)
+  HGSC_Figure2_TIP_DF(rTNK.smi,
+                      r.xenium,
+                      rTNK.xenium,R,
+                      r = r.smi,
+                      morph=morph, daf=daf,
+                      cell_2_rgb=cell_2_rgb)
+  # HGSC_Figure3_TIP(rTNK.smi,
+  #                  r.xenium,
+  #                  rTNK.xenium,R)
   HGSC_Figure4_mTIL(r = r.smi,
                     r1 = rmal.smi,
                     rslts = rslts,

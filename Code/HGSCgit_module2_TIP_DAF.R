@@ -1,14 +1,22 @@
-#### Results Section 3 ###
-# Figure 3. T/NK cell states reflect their tumor infiltration status.
-# Table S5. Immune tumor infiltration programs (TIPs) derived from SMI data. Associated with Figure 3.
+#### Results Section 2 ###
+# Figure 2. T/NK cell states reflect their tumor infiltration status.
+# Supplementary Table 4. Immune tumor infiltration programs (TIPs) derived from SMI data.
+# Supplementary Table 5. Desmoplastic Fibroblast program (A) and its Gene
+# Ontology enrichment analysis (B).
 
-# Figure 3A. CD8 T cell umaps
-# Figure 3B. CD8 T cell TIP genes' association with tumor infiltration in different cell subtypes.
-# Figure 3C. TIPs overlaps (barplots)
-# Figure 3D. Xenium spatial maps with CD8 TIP
-# Figure 3E. Ligand-receptor interactions (generated via CytoScape)
+# Figure 2a. CD8 T cell umaps
+# Figure 2b. CD8 T cell TIP genes' association with tumor infiltration in different cell subtypes.
+# Figure 2c. Xenium spatial maps with CD8 TIP
+# Figure 2d. Fibroblast-only UMAP
+# Figure 2e. Heatmap of Desmoplastic Fibroblast Program
+# Figure 2f. Desmoplastic Fibroblast Program in situ (composite with H&E made in Adobe Illustrator)
+# Figure 2g. Desmoplastic Fibroblast Program vs. T/NK Localization
+# Figure 2h. Ligand-receptor interactions (generated via CytoScape)
 
-HGSC_Figure3_TIP<-function(r1.smi,r.xenium,r1.xenium,R){
+HGSC_Figure2_TIP_DF<-function(r1.smi,r.xenium,r1.xenium,R,
+                              r = r.smi,
+                              morph, daf,
+                              cell_2_rgb){
   if(missing(r1.smi)){
     r1.smi<-HGSC_SMI.process.CD8()
     r.xenium<-readRDS(get.file("/Data/Xenium_data.rds"))
@@ -18,40 +26,57 @@ HGSC_Figure3_TIP<-function(r1.smi,r.xenium,r1.xenium,R){
     return()
   }
 
-  #1 Regenerate Figure 3A: UMAPs of CD8 T cells with TIP scores.
-  TIP_Fig3A_umaps(r1 = r1.smi)
-  #2 Regenerate Figure 3B: Dot-plot showing CD8 T cell TIP genes association with infiltration in different immune subsets.
-  TIP_Fig3B_dotplot(R = R)
-  #3 Regenerate Figure 3C: Barplot showing the overlap across the different TIPs
-  TIP_Fig3C_barplot(R)
-  #4 Regenerate Figure 3D: Spatial maps showing the CD8 TIP scores in Xenium data
-  TIP_Fig3D_Xenium(r = r.xenium,r1 = r1.xenium)
-  #5 Test for statistical significance in the Xenium data
+  print("Section2")
+
+  #1 Regenerate Figure 3a: UMAPs of CD8 T cells with TIP scores.
+  TIP_Fig2a_umaps(r1 = r1.smi)
+  #2 Regenerate Figure 3b: Dot-plot showing CD8 T cell TIP genes association with infiltration in different immune subsets.
+  TIP_Fig2b_dotplot(R = R)
+  #3 Regenerate Figure 3c: Spatial maps showing the CD8 TIP scores in Xenium data
+  TIP_Fig2c_Xenium(r = r.xenium,r1 = r1.xenium)
+  #4 Test for statistical significance in the Xenium data
   P<-TIP_CD8.Xenium.test(r1 = r1.xenium)
+  #5 Optional: Regenerate an extended version of Figure 3c
+  TIP_Fig2c_Xenium.extended.version(r = r.xenium,r1 = r1.xenium)
+  #6 Write TIPs to Supplemetary Table 4.
+  write.xlsx(x = as.data.frame(list.2.mat(R$sig)),file = get.file("Tables/Table4.xlsx"),asTable = T)
 
-  #6 Optional: Regenerate an extended version of Figure 3D
-  TIP_Fig3D_Xenium.extended.version(r = r.xenium,r1 = r1.xenium)
-
-  #7 Write TIPs to Table S5.
-  write.xlsx(x = as.data.frame(list.2.mat(R$sig)),file = get.file("Tables/TableS5.xlsx"),asTable = T)
+  #7 Regenerate Figure 2d: Fibroblast UMAP with Site and Morphology Annotations
+  print("Fig 2d")
+  HGSC_Fig2d_fib_umap(r=r, morph = morph)
+  #8 Write DF genes to Supplementary Table 5a
+  print("SupplementaryTable 5a")
+  HGSC_Table5a_write_daf(daf = daf)
+  #9 Regenerate Figure 2e: DAF heatmap
+  print("Fig 2e")
+  HGSC_Fig2e_daf_heatmap(r=r, morph = morph, daf = daf)
+  #10 Regenerate PNG Images for Figure 2f: DAF in situ
+  print("Fig 2f")
+  HGSC_Fig2f_daf_in_situ(r=r, daf = daf, cell_2_rgb = cell_2_rgb)
+  #11 Regenerate Figure 2g: Desmoplasia Score as a function of T/NK localization
+  print("Fig 2g")
+  # HGSC_Fig2g_daf_tnk(r=r, daf =daf)
+  #12 Write DAF full gene set results to Supplementary Table 5b
+  print("Supplementary Table 5b")
+  HGSC_Table5b_write_daf_gsea(r=r,daf=daf)
 
   return()
 
 }
 
-TIP_Fig3A_umaps<-function(r1){
+TIP_Fig2a_umaps<-function(r1){
   if(missing(r1)){r1<-HGSC_SMI.CD8.process()}
   l1<-umap.ggplot(r1$umap,labels = r1$plot[,c("Malignant","Fibroblast","TIP")],main = "CD8 T cells (all genes)")
   l2<-umap.ggplot(r1$cts$umap,labels = r1$plot[,c("Malignant","TIP","clusters2")],main = "CD8 T cells (T cell genes)")
 
-  pdf(get.file("Figures/Fig3A.pdf"))
+  pdf(get.file("Figures/Fig2a.pdf"))
   call.multiplot(c(l1,l2,"NULL"))
   dev.off();par(font.axis = 2);par(font.lab = 2);par(font = 2)
 
   return()
 }
 
-TIP_Fig3B_dotplot<-function(R){
+TIP_Fig2b_dotplot<-function(R){
   if(missing(R)){R<-TIP_find_all()}
   # Load immune checkpoint gene set
   ICs<-readRDS(get.file("/Data/ICs.rds"))
@@ -89,26 +114,13 @@ TIP_Fig3B_dotplot<-function(R){
   X0$Estimate<-X0$HLM1.Estimate
   p<-call.dotPlot(X0,cex = 8)
 
-  pdf(get.file("Figures/Fig3B.pdf"))
+  pdf(get.file("Figures/Fig3d.pdf"))
   print(p)
   dev.off();par(font.axis = 2);par(font.lab = 2);par(font = 2)
   return()
 }
 
-TIP_Fig3C_barplot<-function(R){
-  sig<-lapply(R$cell.type.specific,function(X) return(intersect.lists.by.idx(X$sig[c(1,3)],X$sig[c(2,4)])))
-  sig<-unlist(sig,recursive = F)
-  sig<-sig[laply(sig,length)>2]
-  names(sig)<-gsub("HLM1.Z","TIP",names(sig))
-
-  pdf(get.file("Figures/Fig3C.pdf"))
-  print(upset(fromList(sig[grepl("up",names(sig))]), order.by = "freq"))
-  print(upset(fromList(sig[grepl("down",names(sig))]), order.by = "freq"))
-  dev.off();par(font.axis = 2);par(font.lab = 2);par(font = 2)
-  return()
-}
-
-TIP_Fig3D_Xenium<-function(r,r1){
+TIP_Fig2c_Xenium<-function(r,r1){
   fun_color_range <- colorRampPalette(c("blue","grey","red"))
   f<-function(x){
     n1<-min(100,floor(length(x)/3))
@@ -131,7 +143,7 @@ TIP_Fig3D_Xenium<-function(r,r1){
 
   samples<-paste0("XEN_T10_",c("H4","C4","F2","F3","E5","G3","H1","I2"))
 
-  pdf(get.file("Figures/Fig3D.pdf"))
+  pdf(get.file("Figures/Fig3d.pdf"))
   par(mfrow=c(2,2),oma = c(0, 0, 0, 1),xpd = T)
   for(x in samples){
     b1<-r$samples==x&r$b.plot;
@@ -145,7 +157,7 @@ TIP_Fig3D_Xenium<-function(r,r1){
   return(X1)
 }
 
-TIP_Fig3D_Xenium.extended.version<-function(r,r1){
+TIP_Fig2c_Xenium.extended.version<-function(r,r1){
   l<-NULL
   idx<-paste0("XEN_T10_",c("H4","C4","F2","F3","E5","G3","H1","I2"))
   for(x in idx){
@@ -160,10 +172,246 @@ TIP_Fig3D_Xenium.extended.version<-function(r,r1){
                                           add.n.of.samples(discretize.3.labels(r1$tme[b1,"Malignant"],q = 0.1)))
     l[[paste0(x,"_all")]]<-umap.ggplot(r$coor[b,],labels = r$cell.types[b],size = 0.1,main = x,remove.legend = F)
   }
-  pdf(get.file("Figures/Fig3D_split.version.pdf"))
+  pdf(get.file("Figures/Fig3d_split.version.pdf"))
   call.multiplot(l[!grepl("boxplot",names(l))],nplots = 2,cols = 1)
   call.multiplot(l[grepl("boxplot",names(l))],nplots = 6,cols = 3)
   dev.off();par(font.axis = 2);par(font.lab = 2);par(font = 2)
+}
+
+HGSC_Fig2d_fib_umap<- function(r, morph){
+  set.seed(1234)
+
+  #subset out fibroblasts
+  q <- subset_list(r, r$cells[r$cons$conf.score.cell.type > 0.95 &
+                                r$cell.types == "Fibroblast"])
+  meta <- morph[q$samples,]
+  row.names(meta) <- q$cells
+
+  # make umap
+  so <- CreateSeuratObject(q$tpm[!grepl("NegPrb", r$genes), ], meta.data = meta)
+  so <- ScaleData(so)
+  so <- FindVariableFeatures(so, nfeatures = 920)
+  so <- RunPCA(so, npcs = 30)
+  so <- RunUMAP(so, dims = 1:30)
+
+  # plot umap with sites annotations
+  a <- DimPlot(so, group.by = "sites_binary",
+               na.value = brewer.pal(n = 9, name = "Set3")[9]) +
+    theme(axis.ticks = element_blank(),
+          axis.line = element_blank(),
+          axis.title = element_blank(),
+          axis.text = element_blank()) +
+    scale_color_manual(values = c("dodgerblue", "salmon"),
+                       na.value = brewer.pal(n = 9, name = "Set3")[9])
+  b <- DimPlot(so, group.by = "type") +
+    scale_color_manual(values = brewer.pal(n = 8,
+                                           name = "Set3")[c(5,7:8)],
+                       na.value = brewer.pal(n = 9, name = "Set3")[9]) +
+    theme(axis.ticks = element_blank(),
+          axis.line = element_blank(),
+          axis.title = element_blank(),
+          axis.text = element_blank())
+
+  pdf(get.file("Figures/Fig2F.pdf"), width = 10, height =5)
+  print(a + b)
+  dev.off()
+}
+
+HGSC_Table5a_write_daf <- function(daf){
+  ord1 <- order(union(daf$Fibroblast.paired.up, daf$Fibroblast.unpaired.up))
+  up <- union(daf$Fibroblast.paired.up, daf$Fibroblast.unpaired.up)[ord1]
+  ord2 <- order(union(daf$Fibroblast.paired.down, daf$Fibroblast.unpaired.down))
+  down <- union(daf$Fibroblast.paired.down, daf$Fibroblast.unpaired.down)[ord2]
+
+  daf_sig <- c()
+  daf_sig$DAF_up <- up
+  daf_sig$DAF_down <- down
+  write.xlsx(x = as.data.frame(list.2.mat(daf_sig)),
+             file = get.file("Tables/Table5a.xlsx"),
+             asTable = T)
+}
+
+HGSC_Fig2e_daf_heatmap <- function(r, morph, daf){
+  subcells = r$cells[r$cell.types == "Fibroblast"]
+  q <- subset_list(r, subcells)
+
+  sig <- list("om.up" = daf$Fibroblast.paired.up,
+              "om.down" = daf$Fibroblast.paired.down)
+  sig <- list("om.up" = intersect(daf$Fibroblast.paired.up,
+                                  daf$Fibroblast.unpaired.up),
+              "om.down" = intersect(daf$Fibroblast.paired.down,
+                                    daf$Fibroblast.unpaired.down))
+
+  # calculate overall expression of the omentum signature in each cell
+  q$oe <- get.OE(q, sig)
+  q$oe <- cap_object(q$oe, 0.05)
+  q$oe <- data.frame(q$oe)
+  q$oe$samples <- q$samples
+
+  # calculate mean overall expression
+  oe_mean <- q$oe %>%
+    group_by(samples) %>%
+    summarize_all('mean') %>%
+    arrange(desc(om))
+
+  # scale, center, cap expression matrix
+  q$zscores_fibroblast <- cap_object(q$tpm, 0.05)
+  q$zscores_fibroblast <- scale_and_center(q$zscores_fibroblast, 1)
+
+  mat_df <- data.frame(t(q$zscores_fibroblast), samples = q$samples) %>%
+    group_by(samples) %>%
+    summarize_all("mean")
+  mat <- data.matrix(dplyr::select(mat_df, -samples))
+  row.names(mat) <- mat_df$samples
+  mat <- cap_object(mat, q = 0.05)
+
+  # top correlated genes with omentum signature
+  gene.cor<-spearman.cor(mat[oe_mean$samples,],oe_mean$om)
+  sig1<-get.top.cor(gene.cor,q = 25,idx = "R")
+  gene<-c(sig1$R.up,sig1$R.down)
+
+  # format annotations
+  df <- morph
+  df[is.na(df)] <- "Unlabeled"
+  ann <- unique(data.frame(samples = q$samples, sites = q$sites_binary,
+                           morph = df[q$samples,]$type))
+  ann <- merge(oe_mean, ann, by = "samples")
+  ann[is.na(ann)] <- "Unlabeled"
+  row.names(ann) <- ann$samples
+  ann <- ann %>% dplyr::select(om, sites, morph)
+  ann_colors = list(sites = c(Omentum = "salmon", Adnexa = "dodgerblue"),
+                    direction = c(up = "#E10000", down = "#4782C9"),
+                    morph = c(`OvarianStroma-\nDesmoplasia+` = "#80B1D3",
+                              `OvarianStroma+\nDesmoplasia+`="#B3DE69",
+                              `OvarianStroma+\nDesmoplasia-`="#FCCDE5",
+                              `Unlabeled` = "#D9D9D9"))
+  ann_col <- data.frame(direction = c(
+    rep("up", length(sig1$R.up)), rep("down", length(sig1$R.down))
+  ))
+  row.names(ann_col) <- gene
+  sample_order <- row.names(ann %>%
+                              mutate(sites = factor(sites,
+                                                    levels = c("Omentum",
+                                                               "Adnexa"))) %>%
+                              arrange(desc(om), sites))
+
+  # plot to disk
+  pdf(get.file("Figures/Fig2H.pdf"),
+      width = 10, height = 5)
+  plt <- pheatmap(mat[oe_mean$samples,gene],
+                  cluster_rows = F,
+                  cluster_cols = F,
+                  annotation_row = ann,
+                  show_rownames = F,
+                  show_colnames = T,
+                  annotation_colors = ann_colors,
+                  border_color = NA,
+                  annotation_col = ann_col)
+  dev.off()
+}
+
+HGSC_Table5b_write_daf_gsea <- function(r, daf){
+  resultsout <- (gprofiler2::gost(union(daf$Fibroblast.paired.up,
+                                        daf$Fibroblast.unpaired.up),
+                                  organism = "gp__w8SG_tnEY_W4Q",
+                                  custom_bg = r$genes[!grepl("NegPrb",
+                                                             r$genes)],
+                                  user_threshold = 0.05,
+                                  correction_method = "fdr"))
+  up <- dplyr::select(resultsout$result,
+                      term_id, query_size, precision, recall, p_value) %>%
+    mutate(direction = "up")
+
+  resultsout2 <- (gprofiler2::gost(union(daf$Fibroblast.paired.down,
+                                         daf$Fibroblast.unpaired.down),
+                                   organism = "gp__w8SG_tnEY_W4Q",
+                                   custom_bg = r$genes[!grepl("NegPrb",
+                                                              r$genes)],
+                                   user_threshold = 0.05,
+                                   correction_method = "fdr"))
+
+  down <- dplyr::select(resultsout2$result,
+                        term_id, query_size, precision, recall, p_value) %>%
+    mutate(direction = "down")
+
+  write.xlsx(x = rbind(up, down),
+             file = get.file("Tables/TableS4B.xlsx"),
+             asTable = T)
+}
+
+HGSC_Fig2f_daf_in_situ <- function(r, daf, cell_2_rgb, s = "SMI_T11_F019"){
+  # subset cells for this sample's fibroblasts
+  q <- subset_list(r, r$cells[r$samples == s &
+                                r$cell.types == "Fibroblast"])
+  daf_scores <- daf$oe[q$cells, "om"]
+
+  # calculate pvalue of daf in situ for this sample
+  pval_df <- data.frame(daf_scores, morph = c("norm","desmo")[unlist(apply(q$coor, 1, function(row){
+    row["y"] > (0.23*row["x"] + 1500)
+  })) + 1], q$coor)
+  out <- wilcox.test(filter(pval_df, morph == "norm")$daf_scores,
+                     filter(pval_df, morph == "desmo")$daf_scores, alternative = "less")
+  print(paste0("p-value for daf in situ: ", out$p.value))
+
+  # make color bar legend
+  names(daf_scores) <- q$cells
+  daf_scores <- scale(daf_scores)
+  daf_scores <- cap_object(daf_scores, 0.01)
+  p <- ggplot(data.frame(daf_scores, q$coor), aes(x = x,
+                                                  y =y,
+                                                  col = daf_scores)) +
+    geom_point() +
+    scale_color_gradient2(low = '#009392', mid = '#f6edbd', high = '#A01C00',
+                          midpoint = 0.8) +
+    coord_fixed() +
+    geom_abline(slope = 0.23, intercept =  1500) + theme_classic()
+  daf_colors <- data.frame(ggplot_build(p)$data[[1]])[,1]
+  names(daf_colors) <- row.names(daf_scores)
+  leg <- ggpubr::as_ggplot(ggpubr::get_legend(p))
+
+  # plot the
+  seg_folder = get.file("Results/Segmentation/")
+  seg_suffix = "_whole-cell_03.csv"
+  cell2rgb <- list("Other" = c(200,200,200),
+                   "Fibroblast" = c(34, 91, 224))
+
+  # plot for each sample
+  seg_path = paste0(seg_folder, s, seg_suffix)
+
+  # subset out cells
+  cells <- r$cells[r$samples == s]
+  q <- subset_list(r, cells)
+  celltypes <- q$cell.types
+  names(celltypes) <- q$cells
+  celltypes[celltypes != "Fibroblast"] <- "Other"
+
+  # set up the colors of the continuous values
+  contvals <- daf_colors[names(celltypes)]
+
+  # run visualization for DAF
+  spatial_sample_visualization(seg_path,
+                               celltypes,
+                               cell2rgb,
+                               s,
+                               background = "white",
+                               outpath = outpath,
+                               outfile = get.file("Figures/Fig2J-2.png"),
+                               cont_field = "Fibroblast",
+                               contvals = contvals)
+
+  # run visualization for cell types for reference
+  q <- subset_list(r, r$cells[r$samples == s])
+  q$cell.types[grepl("_LC", q$cell.types)] <- "LC"
+  cell_2_rgb$LC <- c(0,0,0)
+  spatial_sample_visualization(seg_path,
+                               celltypes = q$cell.types,
+                               cell_2_rgb,
+                               s,
+                               background = "black",
+                               outpath = outpath,
+                               low_qc_color = 0,
+                               outfile = get.file("Figures/Fig2J-1.png"))
+
 }
 
 HGSC_Figure3.data.regenerate<-function(){

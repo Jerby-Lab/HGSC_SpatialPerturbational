@@ -1,42 +1,35 @@
 # The code below provides a step-by-step guide
 # to regenerate the figures of the manuscript
-# in its final version as of July 2023.
+# in its final version as of September 2023.
 
 # Result Sections
-#1 Data processing and annotations (Figure 1, Tables S1-S3)
-#2 Malignant drift and TME reprogramming (Figure 2, Table S4)
-#3 Immune Tumor Infiltration programs (Figure 3, Table S5)
-#4 Malignant TIL (mTIL) program (Figure 4, Table S6)
-#5 CNAs mapping to mTIL and TIL levels (Figure 5)
-#6 Perturb-Seq meta-analyses (Figure 6, Table S6)
-#7 Perturb-Seq and genetic screen analyses (Figure 7, Table S7)
+#1 Data processing and annotations (Figure 1, Supplementary Tables 1-3)
+#2 Effector T Cells Infiltrate the Tumor (Figure 2, Supplementary Tables 4-5)
+#3 Malignant TIL (mTIL) program (Figure 3, Supplementary Table 6)
+#4 CNAs mapping to mTIL and TIL levels (Figure 4, Supplementary Figure 5)
+#5 Perturb-Seq meta-analyses (Figure 5, Supplementary Table 6)
+#6 Perturb-Seq and genetic screen analyses (Figure 6, Supplementary Table 7)
 
 HGSC_main<-function(){
   if(!file.exists(get.file("Figures/Fig3A.pdf"))){HGSC_source()}
-  
+
   #1 Download Presets and Preprocessed Data for Spatiomolecular Profiling Analyses
   cell_2_rgb <- readRDS(get.file("Data/Cell_Colors.rds"))
   r.smi<-readRDS(get.file("Data/SMI_data.rds"))
   r.xenium<-readRDS(get.file("/Data/Xenium_data.rds"))
   r.merfish <- readRDS(get.file("/Data/MERFISH_data.rds"))
 
-  #2 Download Drift and DAF results
-  sigs <- readRDS(get.file("Results/HGSC_NACTSites_pergene.rds"))
-  sigs_cna <- readRDS(get.file("Results/HGSC_CNA_pergene.rds"))
-  mal_umap <- readRDS(get.file("Results/HGSC_MalUMAP_30PCs.rds"))
-  mal_rf <- readRDS(get.file("Results/HGSC_PatientsRF.rds"))
-  lopo_rf <- readRDS(get.file("Results/HGSC_SitesRF.rds"))
-  mal_drift <- readRDS(get.file("Results/HGSC_MalDrift.rds"))
-  morph <- readRDS(get.file("Data/StromalMorphology.rds"))
-  daf <- readRDS(get.file("Results/HGSC_DAF.rds"))
-
-  #3 Download T/NK and malignant spatial data.
+  #2 Download T/NK and malignant spatial data.
   rTNK.smi<-HGSC_SMI.process.CD8()
   rmal.smi<-HGSC_SMI.process.mal()
   rTNK.xenium<-HGSC_Xenium.process.CD8.NK(r = r.xenium)
 
-  #4 Download Tumor Infiltration Programs (TIP).
+  #3 Download Tumor Infiltration Programs (TIP).
   R<-TIP_find_all()
+
+  #4 Download Desmoplastic Fibroblast results
+  morph <- readRDS(get.file("Data/StromalMorphology.rds"))
+  daf <- readRDS(get.file("Results/HGSC_DAF.rds"))
 
   #5 Download mTIL program.
   rslts<-readRDS(get.file("Results/HGSC_mTIL_Malignant2env_TNK.cell.rds"))
@@ -55,12 +48,12 @@ HGSC_main<-function(){
   #8 Regenerate main Figures and Tables.
   HGSC_Figure1_SpatiomolecularMapping(r = r.smi, q = r.xenium, s = r.merfish,
                                       cell_2_rgb=cell_2_rgb)
-  HGSC_Figure2_DriftDAF(r = r.smi,
-                        sigs_cna = sigs_cna,sigs = sigs,
-                        mal_umap = mal_umap, mal_drift = mal_drift,
-                        mal_rf= mal_rf, lopo_rf = lopo_rf,
-                        morph = morph, daf = daf,
-                        cell_2_rgb = cell_2_rgb)
+  # HGSC_Figure2_DriftDAF(r = r.smi,
+  #                       sigs_cna = sigs_cna,sigs = sigs,
+  #                       mal_umap = mal_umap, mal_drift = mal_drift,
+  #                       mal_rf= mal_rf, lopo_rf = lopo_rf,
+  #                       morph = morph, daf = daf,
+  #                       cell_2_rgb = cell_2_rgb)
   HGSC_Figure3_TIP(rTNK.smi,
                    r.xenium,
                    rTNK.xenium,R)
@@ -78,7 +71,8 @@ HGSC_main<-function(){
 }
 
 get.file<-function(file1){
-  dir1 <- "/path/to/your/local/clone/of/this/repo/"
+  # dir1 <- "/path/to/your/local/clone/of/this/repo/"
+  dir1 <- "~/Projects/HGSC_SpatialPerturbational/"
   return(paste0(dir1,file1))
 }
 

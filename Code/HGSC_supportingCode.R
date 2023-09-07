@@ -982,9 +982,9 @@ spatial_sample_visualization <- function (seg_path,
   cellmask <- EBImage::channel(cellmask, "rgb")
   levels <- setdiff(unique(celltypes), cont_field)
   for (type in levels) {
-    print(type)
+    # print(type)
     cellids = names(celltypes[celltypes == type])
-    print(length(cellids))
+    # print(length(cellids))
     cellidx = unlist(lapply(cellids, function(x) as.integer(strsplit(x,
                                                                      split = "c")[[1]][2])))
     celltype_mask <- t(apply(cellseg, 1, function(x) {
@@ -1078,11 +1078,10 @@ scRNA_denovo.cell.type.markers<-function(r,n.non.mal,q.dr = 0.2){
   r$b.mal<-r$cell.types=="Malignant"
   b<-!r$b.mal|is.element(r$samples,get.abundant(r$samples[r$b.mal],abn.c = 50))
   b<-b&get.abundant(r$cell.types,abn.c = 50,boolean.flag = T)
-  print(paste("Removing",sum(!b),"cells."))
+  # print(paste("Removing",sum(!b),"cells."))
   r<-set.list(r,b)
 
   r$cell.types[r$b.mal]<-paste(r$cell.types[r$b.mal],r$patients[r$b.mal],sep = "_")
-  table(r$cell.types)
   cell.types<-unique(r$cell.types)
   gene.av <- t(laply(cell.types,function(x) return(rowMeans(r$tpm[,r$cell.types==x]))))
   gene.dr <- t(laply(cell.types,function(x) return(rowMeans(r$tpm[,r$cell.types==x]>0))))
@@ -1093,7 +1092,7 @@ scRNA_denovo.cell.type.markers<-function(r,n.non.mal,q.dr = 0.2){
   sigDR<-apply(gene.dr,2,function(x) genes[x>q.dr])
   n.mal<-min(length(unique(r$patients[r$b.mal])),40)
   sigDR$Malignant<-get.abundant(unlist(sigDR[grepl("Malignant",names(sigDR))]),n.mal)
-  print(summary(sigDR))
+  # print(summary(sigDR))
   sig<-sigDR
 
   b.mal<-grepl("Malignant",cell.types)
@@ -1109,7 +1108,7 @@ scRNA_denovo.cell.type.markers<-function(r,n.non.mal,q.dr = 0.2){
   sig[b.tcell]<-lapply(Z1[b.tcell], function(X) sort(rownames(X)[X$n.non.T>=n.non.T&X$n.mal>=n.mal]))
   sig[b.mal]<-lapply(Z1[b.mal], function(X) sort(rownames(X)[X$n.non.mal>=n.non.mal]))
   sig$Malignant<-get.abundant(unlist(sig[b.mal]),n.mal)
-  print(summary(sig[c("Malignant",cell.types[!b.mal])]))
+  # print(summary(sig[c("Malignant",cell.types[!b.mal])]))
   sigFC<-sig
 
   Z2<-lapply(cell.types,get.ttest)
@@ -1121,7 +1120,7 @@ scRNA_denovo.cell.type.markers<-function(r,n.non.mal,q.dr = 0.2){
   sig[b.mal]<-lapply(Z2[b.mal], function(X) sort(rownames(X)[X$n.non.mal>=n.non.mal]))
   sig$Malignant<-sort(get.abundant(v = unlist(sig[b.mal]),
                                    abn.c = min(sum(b.mal),40),boolean.flag = F))
-  print(summary(sig[c("Malignant",cell.types[!b.mal])]))
+  # print(summary(sig[c("Malignant",cell.types[!b.mal])]))
 
   sig.strict<-intersect.lists(sigFC,sigDR)
   sig.strict<-intersect.lists(sig,sig.strict)
@@ -1140,7 +1139,7 @@ scRNA_denovo.cell.type.markers<-function(r,n.non.mal,q.dr = 0.2){
   }
   max.nonmal<-rowMax(rslts$gene.dr[,!grepl("Malignant",colnames(rslts$gene.dr))])
   rslts$sig$Malignant.strict<-rslts$sig$Malignant[max.nonmal[rslts$sig$Malignant]<0.2]
-  print(summary(rslts$sig))
+  # print(summary(rslts$sig))
   return(rslts)
 }
 

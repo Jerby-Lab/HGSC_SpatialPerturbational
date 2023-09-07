@@ -1,66 +1,66 @@
 #### Results Section 1 ###
 # Figure 1. Single cell spatial transcriptomics (ST) mapping of HGSC.
-# Table S1. Specifications of datasets collected and/or analyzed in this study. Associated with Figure 1.
-# Table S2. Metadata for each tissue section profiled by spatial transcriptomics. Associated with Figure 1.
-# Table S3. Cell Type Signature Genes. Includes both signature genes derived from scRNA-Seq and CellTypist Immune Encyclopedia (A) and from spatial transcriptomics (B). Associated with Figures 1, S1, S2.
+# Supplementary Table 1. Specifications of datasets collected and/or analyzed in this study. Associated with Figure 1.
+# Supplementary Table 2. Metadata for each tissue section profiled by spatial transcriptomics. Associated with Figure 1.
+# Supplementary Table 3. Cell Type Signature Genes. Includes both signature genes derived from scRNA-Seq and CellTypist Immune Encyclopedia (A) and from spatial transcriptomics (B). Associated with Figures 1, S1, S2.
 
-# Figure 1A. Spatial Cohort Design (generated in Figma, with Lettie Mcguire)
-# Figure 1B. CoMut Plot (output files in Results/ used for python code)
-# Figure 1C. Cell Type UMAPs
-# Figure 1D. Cell Types in situ (composite with H&E images made in Adobe Illustrator)
-# Figure 1E. Coembedding scross ST and scRNA-seq datasets
-# Figure 1F. Cell Type Compositions
-# Figure 1G. Hypergeometric Mapping
-# Figure 1H. Cell Co-localization Quotient Analysis
+# Figure 1a. Spatial Cohort Design (generated in Figma, with Lettie Mcguire)
+# Figure 1b. CoMut Plot (output files in Results/ used for python comut code)
+# Figure 1c. Cell Type UMAPs
+# Figure 1d. Cell Types in situ (composite with H&E images made in Adobe Illustrator)
+# Figure 1e. Coembedding scross ST and scRNA-seq datasets
+# Figure 1f. Cell Type Compositions
+# Figure 1g. Hypergeometric Spatial Mapping
+# Figure 1h. Cell Co-localization Quotient Analysis
 
 HGSC_Figure1_SpatiomolecularMapping <- function(r, q, s, cell_2_rgb){
   print("Section1")
-  print("Fig1A is generated outside of R")
+  print("Fig 1a is generated outside of R")
   #1 Regenerate input files for CoMut plot in python
-  print("Fig1B")
-  master <- HGSC_Fig1B_make_comut(r, q, s)
+  print("Fig 1b")
+  master <- HGSC_Fig1b_make_comut(r, q, s)
   #2 Generate Table S1A, the specifications of ST and scRNA-seq platforms
-  print("TableS1A")
-  HGSC_TableS1A_write_specs(master)
+  print("Supplementary Table 1a")
+  HGSC_Table1a_write_specs(master)
   #3 Generate Table S1B, genes of each dataset
-  print("TableS1B")
-  HGSC_TableS1B_write_genes(r=r,q=q,s=s)
+  print("Supplementary Table 1b")
+  HGSC_Table1b_write_genes(r=r,q=q,s=s)
   #4 Generate Table S2A, key names of clinical data
-  print("TableS2A")
-  HGSC_TableS2A_write_colkeys()
+  print("Supplementary Table 2a")
+  HGSC_Table2a_write_colkeys()
   #5 Generate Table S2B, colnames keys
-  print("TableS2B")
-  HGSC_TableS2B_write_fullmetadata(master)
+  print("Supplementary Table 2b")
+  HGSC_Table2b_write_fullmetadata(master)
   #6 Regenerate Figure 1C: Cell Type UMAPs
-  print("Fig1C")
-  HGSC_Fig1C_celltype_umaps(r=r,
+  print("Fig 1c")
+  HGSC_Fig1c_celltype_umaps(r=r,
                             cell_2_rgb = cell_2_rgb)
   #7 Generate Table S3A, cell type signatures from scRNA-seq
-  print("TableS3A")
-  HGSC_TableS3A_write_scRNAsigs()
+  print("Supplementary Table 3a")
+  HGSC_Table3a_write_scRNAsigs()
   #8 Generate Table S3B, cell type signatures from SMI
-  print("TableS3B")
-  HGSC_TableS3B_write_SMIsigs(r=r)
+  print("Supplementary Table 3b")
+  HGSC_Table3b_write_SMIsigs(r=r)
   #9 Regenerate Figure 1D: Cell Types in situ
-  print("Fig1D")
-  HGSC_Fig1D_celltypes_insitu(r=r, q=q, s=s, cell_2_rgb=cell_2_rgb)
+  print("Fig 1d")
+  # HGSC_Fig1d_celltypes_insitu(r=r, q=q, s=s, cell_2_rgb=cell_2_rgb)
   #10 Regenerate Figure 1E: Coembedding scross ST and scRNA-seq datasets
-  print("Fig1E")
-  HGSC_Fig1E_coembedding(cell_2_rgb)
+  print("Fig 1e")
+  HGSC_Fig1e_coembedding(cell_2_rgb)
   #11 Regenerate Figure 1F: Cell Type Compositions
-  print("Fig1F")
-  HGSC_Fig1F_celltype_composition(r=r, q=q, s=s, cell_2_rgb = cell_2_rgb)
+  print("Fig 1f")
+  # HGSC_Fig1F_celltype_composition(r=r, q=q, s=s, cell_2_rgb = cell_2_rgb)
   #12 Regenerate Figure 1F
-  print("Fig1G")
+  print("Fig 1g")
   # HGSC_Fig1G_hypergeometric(r=r)
   #13 Regenerate Figure 1H: Cell Co-localization Quotient Analysis
-  print("Fig1H")
-  HGSC_Fig1H_clq(r=r, cell_2_rgb = cell_2_rgb)
+  print("Fig 1h")
+  HGSC_Fig1h_clq(r=r, cell_2_rgb = cell_2_rgb)
 
   return()
 }
 
-HGSC_Fig1B_make_comut <- function(r, q, s){
+HGSC_Fig1b_make_comut <- function(r, q, s){
   clin <- readRDS(get.file("Data/Clinical.rds"))
   muts <- readRDS(get.file("Data/BRCA_TP53_muts.rds"))
   # discovery dataset (SMI)
@@ -293,7 +293,7 @@ HGSC_Fig1B_make_comut <- function(r, q, s){
   return(master)
 }
 
-HGSC_TableS1A_write_specs <- function(master){
+HGSC_Table1a_write_specs <- function(master){
   # per platform stats for ST
   per_platform <- master %>%
     group_by(platform) %>%
@@ -336,32 +336,32 @@ HGSC_TableS1A_write_specs <- function(master){
   final <- cbind(field = row.names(final), final)
 
   # write to disk
-  write.xlsx(final, file = get.file("Tables/TableS1A.xlsx"),
+  write.xlsx(final, file = get.file("Tables/Table1a.xlsx"),
              asTable = T)
 }
 
-HGSC_TableS1B_write_genes <- function(r, q, s){
+HGSC_Table1b_write_genes <- function(r, q, s){
   out <- as.data.frame(list.2.mat(list(SMI = r$genes,
                                        ISS = q$genes,
                                        MERFISH = s$genes)))
 
   # write to disk
-  write.xlsx(out, file = get.file("Tables/TableS1B.xlsx"),
+  write.xlsx(out, file = get.file("Tables/Table1b.xlsx"),
              asTable = T)
 }
 
-HGSC_TableS2A_write_colkeys <- function(){
+HGSC_Table2a_write_colkeys <- function(){
   colkeys <- readRDS(get.file("Data/ClinicalDataColumnKey.rds"))
-  write.xlsx(colkeys, file = get.file("Tables/TableS2A.xlsx"),
+  write.xlsx(colkeys, file = get.file("Tables/Table2a.xlsx"),
              asTable = T)
 }
 
-HGSC_TableS2B_write_fullmetadata <- function(master){
-  write.xlsx(master, file = get.file("Tables/TableS2B.xlsx"),
+HGSC_Table2b_write_fullmetadata <- function(master){
+  write.xlsx(master, file = get.file("Tables/Table2b.xlsx"),
              asTable = T)
 }
 
-HGSC_Fig1C_celltype_umaps <- function(r, cell_2_rgb){
+HGSC_Fig1c_celltype_umaps <- function(r, cell_2_rgb){
   so_smi <- readRDS(get.file("Results/HGSC_SMI_wUMAP.rds"))
   so_iss <- readRDS(get.file("Results/HGSC_ISS_wUMAP.rds"))
   so_mer <- readRDS(get.file("Results/HGSC_MERFISH_wUMAP.rds"))
@@ -402,13 +402,13 @@ HGSC_Fig1C_celltype_umaps <- function(r, cell_2_rgb){
     theme(legend.title = element_text(size =12))
   d = as_ggplot(get_legend(p))
 
-  pdf(get.file("Figures/Fig1C.pdf"), width = 10, height = 10)
+  pdf(get.file("Figures/Fig1c.pdf"), width = 10, height = 10)
   p <- ggarrange(a,b,c,d)
   print(p)
   dev.off()
 }
 
-HGSC_TableS3A_write_scRNAsigs <- function(){
+HGSC_Table3a_write_scRNAsigs <- function(){
   cell.sig.scRNA <- readRDS(get.file("Results/cell.sigs.scRNA.combined.rds"))
   cell.sig.CellTypist <- readRDS(get.file("Results/cell.sigs.subtype.CellTypist.rds"))
   one <- cell.sig.scRNA[c("B.cell", "Endothelial", "Fibroblast",
@@ -418,11 +418,11 @@ HGSC_TableS3A_write_scRNAsigs <- function(){
                                "CD8.T.cell", "CD4.T.cell")]
   out <- c(one, two)
 
-  write.xlsx(data.frame(list.2.mat(out)), file = get.file("Tables/TableS3A.xlsx"),
+  write.xlsx(data.frame(list.2.mat(out)), file = get.file("Tables/Table3a.xlsx"),
              asTable = T)
 }
 
-HGSC_TableS3B_write_SMIsigs <- function(r, so_smi, cell.sig.SMI.subtypes){
+HGSC_Table3b_write_SMIsigs <- function(r, so_smi, cell.sig.SMI.subtypes){
   so_smi <- readRDS(get.file("Results/HGSC_SMI_wUMAP.rds"))
   cell.sig.SMI.subtypes <- readRDS(get.file("Results/cell.sigs.SMI.subtypes.rds"))
   q <- subset_list(r, colnames(so_smi))
@@ -430,11 +430,11 @@ HGSC_TableS3B_write_SMIsigs <- function(r, so_smi, cell.sig.SMI.subtypes){
   rslts <- scRNA_denovo.cell.type.markers(q)
   out <- rslts$sig[-8]
   write.xlsx(data.frame(list.2.mat(c(out, cell.sig.SMI.subtypes))),
-             file = get.file("Tables/TableS3B.xlsx"),
+             file = get.file("Tables/Table3b.xlsx"),
              asTable = T)
 }
 
-HGSC_Fig1D_celltypes_insitu<- function(r, q, s, cell_2_rgb){
+HGSC_Fig1d_celltypes_insitu<- function(r, q, s, cell_2_rgb){
   # plot 4 samples from the discovery dataset
   samples <- c("SMI_T13_F001", "SMI_T10_F001", "SMI_T12_F016", "SMI_T10_F021")
   lapply(samples, function(x){
@@ -448,7 +448,7 @@ HGSC_Fig1D_celltypes_insitu<- function(r, q, s, cell_2_rgb){
                                  celltypes = celltypes,
                                  cell2rgb = cell_2_rgb,
                                  samplename = x,
-                                 outfile = get.file(paste0("Figures/Fig1D_",
+                                 outfile = get.file(paste0("Figures/Fig1d_",
                                                            x,
                                                            ".png")))
   })
@@ -490,7 +490,7 @@ HGSC_Fig1D_celltypes_insitu<- function(r, q, s, cell_2_rgb){
   dev.off()
 }
 
-HGSC_Fig1E_coembedding <- function(cell_2_rgb){
+HGSC_Fig1e_coembedding <- function(cell_2_rgb){
   coembedding <- readRDS(get.file("Results/HGSC_coembedding.rds"))
 
   # cell types figure
@@ -527,13 +527,13 @@ HGSC_Fig1E_coembedding <- function(cell_2_rgb){
                                                           size = 2)))
 
   # print to disk
-  pdf(get.file("Figures/Fig1E.pdf"),
+  pdf(get.file("Figures/Fig1e.pdf"),
       width = 6, height = 4.5)
   print(a);print(b)
   dev.off()
 }
 
-HGSC_Fig1F_celltype_composition <- function(r, q, s, cell_2_rgb,
+HGSC_Fig1f_celltype_composition <- function(r, q, s, cell_2_rgb,
                                             ct = c("Malignant", "Fibroblast",
                                                    "Endothelial", "Monocyte",
                                                    "Mast.cell", "B.cell",
@@ -553,7 +553,7 @@ HGSC_Fig1F_celltype_composition <- function(r, q, s, cell_2_rgb,
   }
   # compute composition for scRNA
   files = Sys.glob(get.file("Data/scRNA*"))
-  df_sc <- do.call("rbind", lapply(files,
+  df_sc <- do.call("rbind", mclapply(files, mc.cores = 10,
                                      function(path){
                                        print(path)
                                        start <- Sys.time()
@@ -637,7 +637,7 @@ HGSC_Fig1F_celltype_composition <- function(r, q, s, cell_2_rgb,
   cell_2_rgb[["Other"]] = c(153, 153, 153)
 
   # plot to disk
-  pdf(get.file("Figures/Fig1F.pdf"),
+  pdf(get.file("Figures/Fig1f.pdf"),
       width = 18, height = 3)
   p <- ggplot(full, aes(x = samples, y = proportion, fill = cell.types)) +
     geom_bar(stat = "identity") +
@@ -653,9 +653,9 @@ HGSC_Fig1F_celltype_composition <- function(r, q, s, cell_2_rgb,
   as_ggplot(get_legend(g))
   dev.off()
 }
-#HGSC_Fig1G_hypergeometric <- function()
+#HGSC_Fig1g_hypergeometric <- function()
 
-HGSC_Fig1H_clq <- function(r, cell_2_rgb){
+HGSC_Fig1h_clq <- function(r, cell_2_rgb){
   # Compute Colocalization Quotient
   clq <- function(a, b, rs, field) {
     C_b_a <- sum(rs$neighbors[rs[[field]] == a,b], na.rm = T)
@@ -704,7 +704,7 @@ HGSC_Fig1H_clq <- function(r, cell_2_rgb){
     plt <- filter(plt, patients %!in% filter(plt, clq < 1.5)$patients)
 
     # plot with wilcoxon sum rank test
-    pdf(get.file("Figures/Fig1H.pdf"), width = 4, height = 6)
+    pdf(get.file("Figures/Fig1h.pdf"), width = 4, height = 6)
     p <- ggpaired(plt, x = "pair", y = "clq",
                   fill = "pair", line.color = "gray", line.size = 0.4)+
       stat_compare_means(comparisons = list(c("Fibroblast", "Malignant")),

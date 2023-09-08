@@ -1,13 +1,13 @@
 #### Results Section 5 ###
-# Figure 6. Perturb-Seq meta-analyses
-# Table S6A. mTIL program regulators.
+# Figure 5. Perturb-Seq meta-analyses
+# Supplementary Table 6a. mTIL program regulators.
 
-# Figure 6A. Perturb-seq hits in K5621
-# Figure 6B. Perturb-seq hits in RPE1
-# Figure 6C. UMAPs of Perturb-seq hits in K5621
-# Figure 6D. UMAPs of Perturb-seq hits in RPE1
+# Figure 5a. Perturb-seq hits in K5621
+# Figure 5b. Perturb-seq hits in RPE1
+# Figure 5c. UMAPs of Perturb-seq hits in K5621
+# Figure 5d. UMAPs of Perturb-seq hits in RPE1
 
-HGSC_Figure6_perturbMeta<-function(rslts,rslts1,rslts2,rslts3){
+HGSC_Figure5_perturbMeta<-function(rslts,rslts1,rslts2,rslts3){
 
   if(missing(rslts)){
     rslts<-readRDS(get.file("Results/HGSC_mTIL_Malignant2env_TNK.cell.rds"))
@@ -17,21 +17,21 @@ HGSC_Figure6_perturbMeta<-function(rslts,rslts1,rslts2,rslts3){
     HGSC_Figure6.regenerate_perturbSeqMetaA(rslts,rslts1,rslts2,rslts3)
   }
 
-  pdf(get.file("Figures/Fig6A.pdf"))
+  pdf(get.file("Figures/Fig5a.pdf"))
   perturbSeq_sig.reg.barplot(rslts1)
   perturbSeq_sig.reg.barplot(rslts2)
   dev.off();par(font.axis = 2);par(font.lab = 2);par(font = 2)
 
-  pdf(get.file("Figures/Fig6B.pdf"))
+  pdf(get.file("Figures/Fig5b.pdf"))
   perturbSeq_sig.reg.barplot(rslts3,0.2)
   dev.off();par(font.axis = 2);par(font.lab = 2);par(font = 2)
 
-  pdf(get.file("Figures/Fig6C.pdf"))
+  pdf(get.file("Figures/Fig5c.pdf"))
   perturbSeq_OE.umaps(rslts = rslts1$OE,prt = c("IRF1","CEBPA","CEBPE"),name = rslts1$name)
   perturbSeq_OE.umaps(rslts = rslts2$OE,prt = c("PTPN1","KDM1A","CHMP6"),name = rslts2$name)
   dev.off();par(font.axis = 2);par(font.lab = 2);par(font = 2)
 
-  pdf(get.file("Figures/Fig6D.pdf"))
+  pdf(get.file("Figures/Fig5d.pdf"))
   perturbSeq_OE.umaps(rslts = rslts3$OE,prt = c("PSMB5","THAP1"),name = rslts3$name)
   dev.off();par(font.axis = 2);par(font.lab = 2);par(font = 2)
 

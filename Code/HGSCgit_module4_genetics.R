@@ -1,13 +1,13 @@
-#### Results Section 5 ###
-# Figure 5. Copy Number Alterations (CNAs) mapping to mTIL and TIL levels in SMI spatial data and TCGA.
+#### Results Section 4 ###
+# Figure 4. Copy Number Alterations (CNAs) mapping to mTIL and TIL levels in SMI spatial data and TCGA.
 #
-# Figure 5A: mTIL at baseline
-# Figure 5B: Top mTIl <> CNA correlation genes (boxplots)
-# Figure 5C: mTIL at baseline
-# Figure 5D: mTIL survival
-# Figure 5E: TCGA: mTIL vs. CNAs
+# Figure 4a: mTIL at baseline
+# Figure 4b: Top mTIl <> CNA correlation genes (boxplots)
+# Figure 4c: mTIL at baseline
+# Figure 4d: mTIL survival
+# Figure 4e: TCGA: mTIL vs. CNAs
 
-HGSC_Figure5_CNAs<-function(r,r1,rslts1,rslts2){
+HGSC_Figure4_CNAs<-function(r,r1,rslts1,rslts2){
 
   if(missing(r1)){
     r1<-readRDS(get.file("Data/SMI_mTIL_CNA.rds"))
@@ -15,21 +15,21 @@ HGSC_Figure5_CNAs<-function(r,r1,rslts1,rslts2){
     rslts2<-readRDS(get.file("Results/HGSC_CNAs.vs.TIL_TCGA.rds"))
   }
 
-  #1. Regenerate Figure 5A: mTIL at baseline
-  # HGSC_Fig5A(r1 = r1)
-  #2. Regenerate Figure 5B: Top mTIl <> CNA correlation genes (boxplots)
-  HGSC_Fig5B(r1 = r1,rslts = rslts1)
-  #3. Regenerate Figure 5C: mTIL at baseline
-  HGSC_Fig5C(rslts = rslts1)
-  #4. Regenerate Figure 5D: mTIL survival
-  HGSC_Fig5D(r=r)
-  #5. Regenerate Figure 5E: TCGA: mTIL vs. CNAs
-  HGSC_Fig5E(rslts = rslts2)
+  #1. Regenerate Figure 5a: mTIL at baseline
+  # HGSC_Fig5a(r1 = r1)
+  #2. Regenerate Figure 4b: Top mTIl <> CNA correlation genes (boxplots)
+  HGSC_Fig4b(r1 = r1,rslts = rslts1)
+  #3. Regenerate Figure 4c: mTIL at baseline
+  HGSC_Fig4c(rslts = rslts1)
+  #4. Regenerate Figure 4d: mTIL survival
+  HGSC_Fig4d(r=r)
+  #5. Regenerate Figure 4e: TCGA: mTIL vs. CNAs
+  HGSC_Fig4e(rslts = rslts2)
 
   return()
 }
 
-HGSC_Fig5B<-function(r1,rslts){
+HGSC_Fig4b<-function(r1,rslts){
   if(missing(r1)){
     r1<-readRDS(get.file("Data/SMI_mTIL_CNA.rds"))
     rslts<-readRDS(get.file("Results/HGSC_mTIL_vsCNAs.rds"))
@@ -44,14 +44,14 @@ HGSC_Fig5B<-function(r1,rslts){
 
   l1<-lapply(c("TCF7L2","IFNGR2","AXL","IFNAR1","ACTA2","RUNX1"),f1)
 
-  pdf(get.file("Figures/Fig5B.pdf"))
+  pdf(get.file("Figures/Fig4b.pdf"))
   call.multiplot(l1,nplots = 6,cols = 3)
   dev.off();par(font.axis = 2);par(font.lab = 2);par(font = 2)
 
   return()
 }
 
-HGSC_Fig5C<-function(rslts){
+HGSC_Fig4c<-function(rslts){
   if(missing(rslts)){
     rslts<-readRDS(get.file("Results/HGSC_mTIL_vsCNAs.rds"))
   }
@@ -61,7 +61,7 @@ HGSC_Fig5C<-function(rslts){
   z<-z[p.adjust(10^-abs(z),method = "BH")<0.1]
   z<-sort(z)
 
-  pdf(get.file("Figures/Fig5C.pdf"))
+  pdf(get.file("Figures/Fig4c.pdf"))
   barplot(abs(z),las=2,cex.names = 0.5,xlab = "Genes CNA",
           col = ifelse(z<0,"lightblue","darkred"),
           ylab = "Z-score",main = "CNAs correlated with the mTIL program")
@@ -71,7 +71,7 @@ HGSC_Fig5C<-function(rslts){
   return()
 }
 
-HGSC_Fig5D <- function(r){
+HGSC_Fig4d <- function(r){
   # Fx Get mTIL Overall Expression
   get_mtil_expression <- function(r, mtil){
     r1 <- subset_list(r, subcells = r$cells[r$cell.types == "Malignant"])
@@ -156,7 +156,7 @@ HGSC_Fig5D <- function(r){
       univariate[grepl("Adnexa", row.names(univariate)),]
     )[c(1:2)]
 
-    pdf(get.file("Figures/Fig5D.pdf"),
+    pdf(get.file("Figures/Fig4d.pdf"),
         width = 5, height = 5)
     for (feat in fu_features) {
       tmp <- surv[,c(c(1:8), which(colnames(surv) == feat))]
@@ -203,14 +203,14 @@ HGSC_Fig5D <- function(r){
   km_plots(univariate, surv)
 }
 
-HGSC_Fig5E<-function(rslts){
+HGSC_Fig4e<-function(rslts){
   if(missing(rslts)){
     rslts<-readRDS(get.file("Results/HGSC_CNAs.vs.TIL_TCGA.rds"))
   }
 
   Xd<-rslts$plot.del
   Xa<-rslts$plot.amp
-  pdf(get.file("Figures/Fig5E.pdf"))
+  pdf(get.file("Figures/Fig4e.pdf"))
   violin.split(Xd$TIL,Xd$Del,conditions = Xd$Gene,
                ylab = "TIL levels",xlab = "mTIL UP Genes",
                main = "TCGA, mTIL CNA vs. TIL levels",cex.axis = 0.5)

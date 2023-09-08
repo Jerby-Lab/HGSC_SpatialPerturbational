@@ -1,17 +1,17 @@
-#### Results Section 5 ###
-# Figure 7. Perturb-Seq meta-analyses
+#### Results Section 6 ###
+# Figure 6. Perturb-Seq meta-analyses
 
-# Figure 7. High content CRISPR screen in ovarian cancer cells in monoculture and co-culture with targeting NK and T cells.
-# 7A. Overview of experimental design (graphics only).
-# 7B. CRISPR-based differential fitness.
-# 7C. Perturb-Seq UMAP.
-# 7D. Perturb-Seq-based mTIL regulators.
-# 7E. mTIL DEGs under different perturbations.
-# 7F. KOs altering the response to NK cells.
-# 7G. Differential expression of KO signatures in monoculture and co-culture
-# 7H. Perturb-Seq UMAPs with cell colored based on gene KO signatures.
+# Figure 6. High content CRISPR screen in ovarian cancer cells in monoculture and co-culture with targeting NK and T cells.
+# 6a. Overview of experimental design (graphics only).
+# 6b. CRISPR-based differential fitness.
+# 6c. Perturb-Seq UMAP.
+# 6d. Perturb-Seq-based mTIL regulators.
+# 6e. mTIL DEGs under different perturbations.
+# 6f. KOs altering the response to NK cells.
+# 6g. Differential expression of KO signatures in monoculture and co-culture
+# 6h. Perturb-Seq UMAPs with cell colored based on gene KO signatures.
 
-HGSC_Figure7_perturbOC<-function(r,rslts,sig,fitnessR){
+HGSC_Figure6_perturbOC<-function(r,rslts,sig,fitnessR){
   if(missing(r)){
     r<-readRDS("Data/PerturbSeq_TYKnuNK.rds")
     rslts<-readRDS("Results/PerturbSeq_TYKnuNK_DEGs.rds")
@@ -25,23 +25,23 @@ HGSC_Figure7_perturbOC<-function(r,rslts,sig,fitnessR){
   r$condL[r$cond=="1to1"]<-"Co-culture, 1:1"
   r$condL[r$cond=="25to1"]<-"Co-culture, 2.5:1"
 
-  HGSC_Fig7B(fitnessR)
-  HGSC_Fig7C(r = r)
-  HGSC_Fig7D(rslts = rslts)
-  HGSC_Fig7E(rslts = rslts,sig = sig)
-  HGSC_Fig7F(rslts = rslts)
-  HGSC_Fig7G(r = r,rslts = rslts)
-  HGSC_Fig7H(r = r)
+  HGSC_Fig6b(fitnessR)
+  HGSC_Fig6c(r = r)
+  HGSC_Fig6d(rslts = rslts)
+  HGSC_Fig6e(rslts = rslts,sig = sig)
+  HGSC_Fig6f(rslts = rslts)
+  HGSC_Fig6g(r = r,rslts = rslts)
+  HGSC_Fig6h(r = r)
 
 
   return()
 }
 
-HGSC_Fig7B<-function(fitnessR){
+HGSC_Fig6b<-function(fitnessR){
   if(missing(fitnessR)){
     fitnessR<-readRDS(get.file("Results/HGSC_CRISPR.rds"))
   }
-  pdf(get.file("Figures/Fig7B.pdf"))
+  pdf(get.file("Figures/Fig6b.pdf"))
   p<-create_volcano_plot(x = fitnessR$Tcell.z, y = fitnessR$NK.z,
                          dot_names = rownames(fitnessR), x_label = "T cell selection", y_label = "NK selection",
                          quadrant_labels = c("Resistance", "T cell response\nNK resistance",
@@ -51,20 +51,20 @@ HGSC_Fig7B<-function(fitnessR){
   return()
 }
 
-HGSC_Fig7C<-function(r){
-  pdf(get.file("Figures/Fig7C.pdf"))
+HGSC_Fig6c<-function(r){
+  pdf(get.file("Figures/Fig6c.pdf"))
   print(umap.ggplot(r$umap,labels = add.n.of.samples(r$condL)))
   dev.off();par(font.axis = 2);par(font.lab = 2);par(font = 2)
   return()
 }
 
-HGSC_Fig7D<-function(rslts){
+HGSC_Fig6d<-function(rslts){
   P<-rslts$sum$sum
   P<-P[P$N<2,]
   z<-P$Z;names(z)<-rownames(P)
   z[abs(z)>8]<-8*sign(z[abs(z)>8])
 
-  pdf(get.file("Figures/Fig7D.pdf"))
+  pdf(get.file("Figures/Fig6d.pdf"))
   barplot(abs(z),las=2,cex.names = 0.3,ylab = "mTIL differential expression",
           xlab = "Gene KO",main = "Perturbation impact on mTIL program",
           col = ifelse(z>2,"blue",ifelse(z<(-2),"darkred","grey")))
@@ -74,7 +74,7 @@ HGSC_Fig7D<-function(rslts){
   return()
 }
 
-HGSC_Fig7E<-function(rslts,sig){
+HGSC_Fig6e<-function(rslts,sig){
   sig1<-get.top.elements(rslts$sum$sum[,1:2],7,min.ci = 0.01)
   p.hot<-c(paste0(sig1$Repressor,".up"),paste0(sig1$Activators,".down"))
   genes<-get.abundant(unlist(intersect.list1(rslts$sig[p.hot],sig$mTIL.up)),5)
@@ -102,7 +102,7 @@ HGSC_Fig7E<-function(rslts,sig){
   X.lab<-cbind.data.frame(mTIL = ifelse(b1,"Repressor","Activator"),
                           Condition = get.strsplit(prtA,".",1))
 
-  pdf(get.file("Figures/Fig7E.pdf"))
+  pdf(get.file("Figures/Fig6e.pdf"))
   call.heatmap(X1,cluster.flag = "row",cexRow = 0.5,col.labels = X.lab,cexCol = 0.5,
                xlab = "Pertrubations",ylab = "Genes",m.value = "Z score",legend.flag = F)
   dev.off();par(font.axis = 2);par(font.lab = 2);par(font = 2)
@@ -110,13 +110,13 @@ HGSC_Fig7E<-function(rslts,sig){
 
 }
 
-HGSC_Fig7F<-function(rslts){
+HGSC_Fig6f<-function(rslts){
   z<-rslts$prt.deNK1[,"zscores"]
   names(z)<-rownames(rslts$prt.deNK1)
   z<-sort(z)
   z[abs(z)>30]<-30*sign(z[abs(z)>30])
 
-  pdf(get.file("Figures/Fig7F.pdf"))
+  pdf(get.file("Figures/Fig6f.pdf"))
   barplot(abs(z),las=2,cex.names = 0.3,ylab = "Differential expression,\nmono- vs. co-culture",
           xlab = "Perturbation signature",main = "",cex.axis = 0.1,
           col = ifelse(z>4,"blue",ifelse(z<(-2),"darkred","grey")))
@@ -125,7 +125,7 @@ HGSC_Fig7F<-function(rslts){
   return()
 }
 
-HGSC_Fig7G<-function(r,rslts){
+HGSC_Fig6g<-function(r,rslts){
   sig1<-get.top.elements(rslts$prt.deNK1[,c("BH.more","BH.less")],7,min.ci = 0.01)
   par(mfrow=c(2,3),oma = c(2, 1, 0, 5),xpd = T)
   X<-NULL
@@ -137,7 +137,7 @@ HGSC_Fig7G<-function(r,rslts){
   X1<-X[is.element(X$prt,sig1$BH.more),]
   X2<-X[!is.element(X$prt,sig1$BH.more),]
 
-  pdf(get.file("Figures/Fig7G.pdf"))
+  pdf(get.file("Figures/Fig6g.pdf"))
   violin.split(scores = X1$scores, treatment = ifelse(X1$cond=="Mono","Monoculture","Co-culture"),
                conditions = X1$prt,ylab = "Pertrbation signature OE",xlab = "Perturbation",
                main = "Genetic pertrubation mimicking NK effects")
@@ -148,7 +148,7 @@ HGSC_Fig7G<-function(r,rslts){
   return()
 }
 
-HGSC_Fig7H<-function(r){
+HGSC_Fig6h<-function(r){
   f1<-function(x){
     call.boxplot(r$scores1[,x],paste0(r$targets,r$cond1),cex = 0.5,
                  labels = paste0(r$cond1,
@@ -160,7 +160,7 @@ HGSC_Fig7H<-function(r){
                       r$scores1c[,c("ACTR8.up","IRF1","MED12.up","STAT1")])
   colnames(X)<-gsub(".up","",colnames(X))
 
-  pdf(get.file("Figures/Fig7H.pdf"))
+  pdf(get.file("Figures/Fig6h.pdf"))
   print(umap.ggplot(r$umap,labels = X[,-1],size = 0.1))
   dev.off();par(font.axis = 2);par(font.lab = 2);par(font = 2)
   return()

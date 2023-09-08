@@ -1,42 +1,42 @@
-#### Results Section 4 ###
-# Figure 4. mTIL
-# Table S6. mTIL program and its regulators.
+#### Results Section 3 ###
+# Figure 3. mTIL
+# Supplementary Table 6. mTIL program and its regulators.
 
-# Figure 4A. mTIL heatmap
-# Figure 4B. mTIL Gene Set Enrichment Analysis
-# Figure 4C. mTIL spatial maps (composite made in Adobe Illustrator)
-# Figure 4D: mTIL as a function of TIL proximity and abundance (boxplot)
-# Figure 4E: mTIL ROCs
-# Figure 4F: mTIL in MERFISH (composite made in Adobe Illustrator)
+# Figure 3a. mTIL heatmap
+# Figure 3b. mTIL Gene Set Enrichment Analysis
+# Figure 3c. mTIL spatial maps (composite made in Adobe Illustrator)
+# Figure 3d: mTIL as a function of TIL proximity and abundance (boxplot)
+# Figure 3e: mTIL ROCs
+# Figure 3f: mTIL in MERFISH (composite made in Adobe Illustrator)
 
-HGSC_Figure4_mTIL<-function(r,r1,rslts,s){
+HGSC_Figure3_mTIL<-function(r,r1,rslts,s){
   if(missing(r)){
     r<-readRDS(get.file("Data/SMI_data.rds"))
     r1<-readRDS(get.file("Data/SMI_data_malignant.rds"))
-    r1<-mTIL_Fig4_prepData(r1)
+    r1<-mTIL_Fig3_prepData(r1)
     rslts<-readRDS(get.file("Results/HGSC_mTIL_Malignant2env_TNK.cell.rds"))
     s <- readRDS(get.file("Data/MERFISH_data.rds"))
   }
 
   #1 Regenerate Figure 4A: mTIL heatmap
-  mTIL_Fig4A(r1 = r1,rslts = rslts)
+  mTIL_Fig3a(r1 = r1,rslts = rslts)
   #2 Regenerate Figure 4B: Gene Set Enrichment Analysis
-  mTIL_Fig4B(r=r)
+  mTIL_Fig3b(r=r)
   #3 Write Table S6B: Full Gene Set Enrichment Analysis
-  mTIL_TableS6B(r=r)
+  mTIL_Table6b(r=r)
   #4 Regenerate Figure 4C: mTIL spatial maps
-  mTIL_Fig4C(r = r,r1 = r1,rslts = rslts)
+  mTIL_Fig3c(r = r,r1 = r1,rslts = rslts)
   #5 Regenerate Figure 4D: mTIL as a function of TIL proximity and abundance (boxplot)
-  mTIL_Fig4D(r1 = r1,rslts = rslts)
+  mTIL_Fig3d(r1 = r1,rslts = rslts)
   #6 Regenerate Figure 4E: ROCs
-  mTIL_Fig4E(r1 = r1,rslts = rslts)
+  mTIL_Fig3e(r1 = r1,rslts = rslts)
   #7 Regenerate Figure 4F: mTIL in MERFISH
-  mTIL_Fig4F(s=s)
+  mTIL_Fig3f(s=s)
 
   return()
 }
 
-mTIL_Fig4A<-function(r1,rslts){
+mTIL_Fig3a<-function(r1,rslts){
   g<-intersect(c("CXCL10","CXCL2","CXCL5","CXCL9","LGALS1","NR3C1",
                  "BCL2","FGFR1","HDAC1","ITGB5","RELA","HDAC5"),unlist(rslts$sig))
   idx1<-order(r1$scoresAv[,"hot100"])
@@ -55,14 +55,14 @@ mTIL_Fig4A<-function(r1,rslts){
   row.labels <- ifelse(is.element(idx2,sig1$R.up),"Hot","Cold")
   row.labels <- cbind.data.frame(row.labels,row.labels)
   # pdf("/Volumes/Resource2/HGSC/Figures/HGSC.plot2_mTIL.heatmap.pdf")
-  pdf(get.file("Figures/Fig4A.pdf"))
+  pdf(get.file("Figures/Fig3a.pdf"))
   call.heatmap(X1,scale = "row",col.labels = col.labels,row.labels = row.labels,cexRow = 0.1,legend.flag = F)
   barplot(r1$scoresAv[idx1,"hot100"],cex.names = 1e-10,xlab = "Frames",ylab = "Immune-rich signature: Overall Expression")
   dev.off();par(font.axis = 2);par(font.lab = 2);par(font = 2)
   return(sig1)
 }
 
-mTIL_Fig4B <- function(r){
+mTIL_Fig3b <- function(r){
   # read data
   mtilgenes <- readRDS(get.file("Results/mTIL_sig.rds"))
 
@@ -135,14 +135,14 @@ mTIL_Fig4B <- function(r){
   print(p2)
 
 
-  pdf(get.file("Figures/Fig4B.pdf"),
+  pdf(get.file("Figures/Fig3b.pdf"),
       width =9,
       height = 4)
   print(p2)
   dev.off()
 }
 
-mTIL_TableS6B <- function(r){
+mTIL_Table6b <- function(r){
   mtilgenes <- readRDS(get.file("Results/mTIL_sig.rds"))
 
   resultsout <- (gprofiler2::gost(mtilgenes$hot100.up,
@@ -171,7 +171,7 @@ mTIL_TableS6B <- function(r){
 
 }
 
-mTIL_Fig4C<-function(r,r1,rslts){
+mTIL_Fig3c <-function(r,r1,rslts){
   #1 Use the mTIL scores to color the malignant cells.
   X<-get.mat(r1$cells,c("hot","hot100"),data = NA)
   for(x in unique(r1$samples)){
@@ -191,7 +191,7 @@ mTIL_Fig4C<-function(r,r1,rslts){
       rslts$ttest.per.sample$ids<-r$ids[match(rownames(rslts$ttest.per.sample),r$samples)]
       samples<-c('SMI_T10_F001','SMI_T10_F015','SMI_T12_F001',
                  'SMI_T12_F009','SMI_T12_F016','SMI_T13_F001')
-      pdf(get.file("Figures/Fig4C.pdf"))
+      pdf(get.file("Figures/Fig3c.pdf"))
       par(mfrow=c(2,2),oma = c(0, 1, 0, 1),xpd = T)
       for(x in samples){
         b1<-r$samples==x
@@ -238,7 +238,7 @@ mTIL_Fig4C<-function(r,r1,rslts){
                                      low_qc_color = 1,
                                      cont_field = "Malignant",
                                      contvals = contvals,
-                                     outfile = get.file(paste0("Figures/Fig4C_",
+                                     outfile = get.file(paste0("Figures/Fig3c_",
                                                                sample,
                                                                ".png")))
 
@@ -257,7 +257,7 @@ mTIL_Fig4C<-function(r,r1,rslts){
         scale_color_gradientn(colors = rainbow(20)[-c(1,9,10)],
                               name = "mTIL in \nMalignant Cells",
                               breaks = c(-1.5, -1, -0.5, 0, 0.5, 1, 1.5))
-      pdf(get.file("Figures/Fig4C_legend.pdf"),
+      pdf(get.file("Figures/Fig3c_legend.pdf"),
           height = 4,
           width = 3)
       leg <- as_ggplot(get_legend(p))
@@ -267,10 +267,10 @@ mTIL_Fig4C<-function(r,r1,rslts){
       return()
 }
 
-mTIL_Fig4D<-function(r1,rslts,q1 = 0.75){
+mTIL_Fig3d<-function(r1,rslts,q1 = 0.75){
   if(missing(r1)){
     r1<-readRDS(get.file("Data/SMI_data_malignant.rds"))
-    r1<-mTIL_Fig4_prepData(r1)
+    r1<-mTIL_Fig3_prepData(r1)
     rslts<-readRDS(get.file("Results/HGSC_mTIL_Malignant2env_TNK.cell.rds"))
   }
 
@@ -292,8 +292,8 @@ mTIL_Fig4D<-function(r1,rslts,q1 = 0.75){
 
   p<-lapply(names(L3),f)
 
-  pdf(get.file("Figures/Fig4D.pdf"))
-  p1<-call.boxplot(r1$scores[,"hot100"],paste0("L",r1$envTIL1),main = "Fig3D",
+  pdf(get.file("Figures/Fig3d.pdf"))
+  p1<-call.boxplot(r1$scores[,"hot100"],paste0("L",r1$envTIL1),main = "Fig3d",
                    ylab = "mTIL program OE",xlab = "TIL levels (radius)",blank.flag = T,labels = NULL)
   p[[4]]<-p1+stat_compare_means(comparisons = list(c("L0","L1"),c("L1","L2"),c("L2","L3")),label = "p.signif",method = "t.test")+theme(legend.position="none")
   print(call.multiplot(p[c(4,1,3,2)],cols = 3,nplots = 6))
@@ -302,9 +302,9 @@ mTIL_Fig4D<-function(r1,rslts,q1 = 0.75){
   return()
 }
 
-mTIL_Fig4E<-function(r1,rslts,q1 = 0.75){
+mTIL_Fig3e<-function(r1,rslts,q1 = 0.75){
   if(missing(r1)){
-    r1<-mTIL_Fig4_prepData()
+    r1<-mTIL_Fig3_prepData()
     rslts<-readRDS("Results/HGSC_mTIL_Malignant2env_TNK.cell.rds")
   }
 
@@ -315,14 +315,14 @@ mTIL_Fig4E<-function(r1,rslts,q1 = 0.75){
           patches = r1$tmeAv[,"TNK.cell"]>quantile(r1$tmeAv[,"TNK.cell"],q1),
           cells = r1$tme[,"TNK.cell"]>quantile(r1$tme[,"TNK.cell"],q1))
 
-  pdf(get.file("Figures/Fig4E.pdf"))
+  pdf(get.file("Figures/Fig3e.pdf"))
   plot.multi.ROCs(P,Y)
   dev.off();par(font.axis = 2);par(font.lab = 2);par(font = 2)
 
   return()
 }
 
-mTIL_Fig4F<- function(s){
+mTIL_Fig3f<- function(s){
   # map mTIL onto MERFISH malignant cells
   mtilgenes <- readRDS(get.file("Results/mTIL_sig.rds"))
   s1 <- subset_list(s, s$cells[s$cell.types == "TNK.cell" &
@@ -355,7 +355,7 @@ mTIL_Fig4F<- function(s){
           legend.position = "none")
 
   # write to disk
-  png(get.file("Figures/Fig4F.png"),
+  png(get.file("Figures/Fig3F.png"),
       height = 16, width = 16, units = "in", res = 500)
   print(p)
   dev.off()
@@ -412,7 +412,7 @@ scores.2.colors<-function(x.class){
 #### ********** Extra ********** ####
 
 mTIL_Fig_supp<-function(r1){
-  r1<-mTIL_Fig4_prepData()
+  r1<-mTIL_Fig3_prepData()
 
   pdf("/Volumes/ljerby/ljerby/HGSC/Figures/HGSC_Fig3_supp.mTIL.per.site.pdf")
   print("Supplemantary Figure showing the mTIL-TIL connections in different sites.")

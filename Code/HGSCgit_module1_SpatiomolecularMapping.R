@@ -19,41 +19,41 @@ HGSC_Figure1_SpatiomolecularMapping <- function(r, q, s, cell_2_rgb){
   #1 Regenerate input files for CoMut plot in python
   print("Fig 1b")
   master <- HGSC_Fig1b_make_comut(r, q, s)
-  #2 Generate Table S1A, the specifications of ST and scRNA-seq platforms
+  #2 Generate Table 1a, the specifications of ST and scRNA-seq platforms
   print("Supplementary Table 1a")
   HGSC_Table1a_write_specs(master)
-  #3 Generate Table S1B, genes of each dataset
+  #3 Generate Table 1b, genes of each dataset
   print("Supplementary Table 1b")
   HGSC_Table1b_write_genes(r=r,q=q,s=s)
-  #4 Generate Table S2A, key names of clinical data
+  #4 Generate Table 2a, key names of clinical data
   print("Supplementary Table 2a")
   HGSC_Table2a_write_colkeys()
-  #5 Generate Table S2B, colnames keys
+  #5 Generate Table 2b, colnames keys
   print("Supplementary Table 2b")
   HGSC_Table2b_write_fullmetadata(master)
-  #6 Regenerate Figure 1C: Cell Type UMAPs
+  #6 Regenerate Figure 1c: Cell Type UMAPs
   print("Fig 1c")
   HGSC_Fig1c_celltype_umaps(r=r,
                             cell_2_rgb = cell_2_rgb)
-  #7 Generate Table S3A, cell type signatures from scRNA-seq
+  #7 Generate Table 3a, cell type signatures from scRNA-seq
   print("Supplementary Table 3a")
   HGSC_Table3a_write_scRNAsigs()
-  #8 Generate Table S3B, cell type signatures from SMI
+  #8 Generate Table 3b, cell type signatures from SMI
   print("Supplementary Table 3b")
   HGSC_Table3b_write_SMIsigs(r=r)
-  #9 Regenerate Figure 1D: Cell Types in situ
+  #9 Regenerate Figure 1d: Cell Types in situ
   print("Fig 1d")
-  # HGSC_Fig1d_celltypes_insitu(r=r, q=q, s=s, cell_2_rgb=cell_2_rgb)
-  #10 Regenerate Figure 1E: Coembedding scross ST and scRNA-seq datasets
+  HGSC_Fig1d_celltypes_insitu(r=r, q=q, s=s, cell_2_rgb=cell_2_rgb)
+  #10 Regenerate Figure 1e: Coembedding scross ST and scRNA-seq datasets
   print("Fig 1e")
   HGSC_Fig1e_coembedding(cell_2_rgb)
-  #11 Regenerate Figure 1F: Cell Type Compositions
+  #11 Regenerate Figure 1f: Cell Type Compositions
   print("Fig 1f")
-  # HGSC_Fig1F_celltype_composition(r=r, q=q, s=s, cell_2_rgb = cell_2_rgb)
-  #12 Regenerate Figure 1F
+  HGSC_Fig1f_celltype_composition(r=r, q=q, s=s, cell_2_rgb = cell_2_rgb)
+  #12 Regenerate Figure 1g
   print("Fig 1g")
   # HGSC_Fig1G_hypergeometric(r=r)
-  #13 Regenerate Figure 1H: Cell Co-localization Quotient Analysis
+  #13 Regenerate Figure 1h: Cell Co-localization Quotient Analysis
   print("Fig 1h")
   HGSC_Fig1h_clq(r=r, cell_2_rgb = cell_2_rgb)
 
@@ -467,7 +467,7 @@ HGSC_Fig1d_celltypes_insitu<- function(r, q, s, cell_2_rgb){
                                celltypes = celltypes,
                                cell2rgb = cell_2_rgb,
                                samplename = x,
-                               outfile = get.file(paste0("Figures/Fig1D_",
+                               outfile = get.file(paste0("Figures/Fig1d_",
                                                          "XEN_T10_", spot,
                                                          ".png")))
 
@@ -484,7 +484,7 @@ HGSC_Fig1d_celltypes_insitu<- function(r, q, s, cell_2_rgb){
           axis.text = element_blank(),
           axis.title = element_blank(),
           legend.position = "none")
-  png(get.file("Figures/Fig1D_MER_TB21361.png"),
+  png(get.file("Figures/Fig1d_MER_TB21361.png"),
       height = 16, width = 16, units = "in", res = 500)
   print(p)
   dev.off()

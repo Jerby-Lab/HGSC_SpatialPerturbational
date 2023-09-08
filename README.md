@@ -1,6 +1,6 @@
-# Spatial mapping of tubo-ovarian cancer and Perturb-seq reveal immune evasion mechanisms
+# Mapping spatial organization in ovarian cancer uncovers drivers of immune evasion
 
-This resource provides the code developed in the study of Yeh, Aguirre, Laveroni _et al_. **_"Spatial mapping of tubo-ovarian cancer and Perturb-seq reveal immune evasion mechanisms"_**. It provides the data and interim files (see below) to reproduces the main figures and tables in the study and serves as a framework to perform integrated analyses with single cell spatial transcriptomics and perturb-seq data. 
+This resource provides the code developed in the study of Yeh, Aguirre, Laveroni _et al_. **_"Mapping spatial organization in ovarian cancer uncovers drivers of immune evasion"_**. It provides the data and interim files (see below) to reproduces the main figures and tables in the study and serves as a framework to perform integrated analyses with single cell spatial transcriptomics and perturb-seq data. 
 
 ## **Data**
 
@@ -13,7 +13,7 @@ Follow the steps below to reproduce the figures and tables in Yeh, Aguirre, Lave
 
 2. Download _**HGSC_Data.zip**_, place and unzip it in the `HGSC_SpatialPerturbational` repository. This will result in two additional direcotries: (1) Data, and (2) Results.
 
-3. In line 81 of `Code/HGSCgit_main.R` please replace `/path/to/your/local/clone/of/this/repo/` with the local path to this repository as it appears in your local machine. 
+3. In line 71 of `Code/HGSCgit_main.R` please replace `/path/to/your/local/clone/of/this/repo/` with the local path to this repository as it appears in your local machine. 
 
 4. In RStudio or within a script, run: ```HGSC_main()```
 
@@ -21,7 +21,7 @@ You can find the resulting figure panels in _Figures_, and the tables in _Tables
 
 ## Citation
 
-Yeh, Aguirre, Laveroni _et al._ _**Spatial mapping of tubo-ovarian cancer and Perturb-seq reveal immune evasion mechanisms**_.
+Yeh, Aguirre, Laveroni _et al._ _**Mapping spatial organization in ovarian cancer uncovers drivers of immune evasions**_.
 
 ## **Software Requirements**
 

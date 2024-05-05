@@ -18,6 +18,11 @@ HGSC_main<-function(){
   r.smi<-readRDS(get.file("Data/SMI_data.rds"))
   r.xenium<-readRDS(get.file("/Data/Xenium_data.rds"))
   r.merfish <- readRDS(get.file("/Data/MERFISH_data.rds"))
+  r.test1 <- readRDS(get.file("Data/SMI6K_Data_wSubtypes.rds"))
+  r.test2.1 <- readRDS(get.file("Data/WT1_wSubtypes.rds"))
+  r.test2.2 <- readRDS(get.file("Data/WT2_wSubtypes.rds"))
+  r.test2.3 <- readRDS(get.file("Data/WT3_wSubtypes.rds"))
+  r.test2.4 <- readRDS(get.file("Data/WT4_wSubtypes.rds"))
 
   #2 Download T/NK and malignant spatial data.
   rTNK.smi<-HGSC_SMI.process.CD8()
@@ -46,7 +51,10 @@ HGSC_main<-function(){
   fitnessR<-readRDS(get.file("Results/HGSC_CRISPR.rds"))
 
   #8 Regenerate main Figures and Tables.
-  HGSC_Figure1_SpatiomolecularMapping(r = r.smi, q = r.xenium, s = r.merfish,
+  HGSC_Figure1_SpatiomolecularMapping(d = r.smi, v1 = r.xenium, v2 = r.merfish,
+                                      t1 = r.test1, t2.1 = r.test2.1, 
+                                      t2.2 = r.test2.2, t2.3 = r.test2.3,
+                                      t2.4 = r.test2.4, 
                                       cell_2_rgb=cell_2_rgb)
   HGSC_Figure2_TIP_DF(rTNK.smi,
                       r.xenium,
@@ -68,7 +76,7 @@ HGSC_main<-function(){
 }
 
 get.file<-function(file1){
-  dir1 <- "/path/to/your/local/clone/of/this/repo/"
+  dir1 <- "~/Projects/HGSC_SpatialPerturbational/"
   return(paste0(dir1,file1))
 }
 

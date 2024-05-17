@@ -3,26 +3,36 @@
 # in its final version as of September 2023.
 
 # Result Sections
-#1 Data processing and annotations (Figure 1, Supplementary Tables 1-3)
-#2 Effector T Cells Infiltrate the Tumor (Figure 2, Supplementary Tables 4-5)
-#3 Malignant TIL (mTIL) program (Figure 3, Supplementary Table 6)
-#4 CNAs mapping to mTIL and TIL levels (Figure 4)
-#5 Perturb-Seq meta-analyses (Figure 5, Supplementary Table 6)
-#6 Perturb-Seq and genetic screen analyses (Figure 6, Supplementary Table 7)
+#1 Data processing and annotations (Figure 1)
+#2 Effector T Cells Infiltrate the Tumor (Figure 2)
+#3 Malignant TIL (mTIL) program (Figure 3)
+#5 CNAs mapping to mTIL and TIL levels (Figure 5)
+#6 Perturb-Seq meta-analyses (Figure 6)
+#7 Perturb-Seq and genetic screen analyses (Figure 7)
+#8 Validation of Genetic KO's (Figure 8)
 
 HGSC_main<-function(){
   if(!file.exists(get.file("Figures/Fig3A.pdf"))){HGSC_source()}
 
   #1 Download Presets and Preprocessed Data for Spatiomolecular Profiling Analyses
   cell_2_rgb <- readRDS(get.file("Data/Cell_Colors.rds"))
-  r.smi<-readRDS(get.file("Data/SMI_data.rds"))
-  r.xenium<-readRDS(get.file("/Data/Xenium_data.rds"))
-  r.merfish <- readRDS(get.file("/Data/MERFISH_data.rds"))
-  r.test1 <- readRDS(get.file("Data/SMI6K_Data_wSubtypes.rds"))
-  r.test2.1 <- readRDS(get.file("Data/WT1_wSubtypes.rds"))
-  r.test2.2 <- readRDS(get.file("Data/WT2_wSubtypes.rds"))
-  r.test2.3 <- readRDS(get.file("Data/WT3_wSubtypes.rds"))
-  r.test2.4 <- readRDS(get.file("Data/WT4_wSubtypes.rds"))
+  # r.smi<-readRDS(get.file("Data/SMI_data.rds"))
+  # r.xenium<-readRDS(get.file("/Data/Xenium_data.rds"))
+  # r.merfish <- readRDS(get.file("/Data/MERFISH_data.rds"))
+  # r.test1 <- readRDS(get.file("Data/SMI6K_Data_wSubtypes.rds"))
+  # r.test2.1 <- readRDS(get.file("Data/WT1_wSubtypes.rds"))
+  # r.test2.2 <- readRDS(get.file("Data/WT2_wSubtypes.rds"))
+  # r.test2.3 <- readRDS(get.file("Data/WT3_wSubtypes.rds"))
+  # r.test2.4 <- readRDS(get.file("Data/WT4_wSubtypes.rds"))
+  # r<-readRDS(get.file("Data/SMI_data.rds"))
+  # q<-readRDS(get.file("/Data/Xenium_data.rds"))
+  # s <- readRDS(get.file("/Data/MERFISH_data.rds"))
+  # t1 <- readRDS(get.file("Data/SMI6K_Data_wSubtypes.rds"))
+  # t2.1<- readRDS(get.file("Data/WT1_wSubtypes.rds"))
+  # t2.2 <- readRDS(get.file("Data/WT2_wSubtypes.rds"))
+  # t2.3 <- readRDS(get.file("Data/WT3_wSubtypes.rds"))
+  # t2.4 <- readRDS(get.file("Data/WT4_wSubtypes.rds"))
+  
 
   #2 Download T/NK and malignant spatial data.
   rTNK.smi<-HGSC_SMI.process.CD8()
@@ -51,28 +61,26 @@ HGSC_main<-function(){
   fitnessR<-readRDS(get.file("Results/HGSC_CRISPR.rds"))
 
   #8 Regenerate main Figures and Tables.
-  HGSC_Figure1_SpatiomolecularMapping(d = r.smi, v1 = r.xenium, v2 = r.merfish,
-                                      t1 = r.test1, t2.1 = r.test2.1, 
-                                      t2.2 = r.test2.2, t2.3 = r.test2.3,
-                                      t2.4 = r.test2.4, 
-                                      cell_2_rgb=cell_2_rgb)
+  HGSC_Figure1_SpatiomolecularMapping(cell_2_rgb=cell_2_rgb)
+  r.smi<-readRDS(get.file("Data/SMI_data.rds"))
+  r.xenium<-readRDS(get.file("/Data/Xenium_data.rds"))
   HGSC_Figure2_TIP_DF(rTNK.smi,
                       r.xenium,
                       rTNK.xenium,R,
                       r = r.smi,
                       morph=morph, daf=daf,
                       cell_2_rgb=cell_2_rgb)
-  HGSC_Figure3_mTIL(r = r.smi,
-                    r1 = rmal.smi,
-                    rslts = rslts,
-                    s = r.merfish)
-  HGSC_Figure4_CNAs(r=r.smi)
-  HGSC_Figure5_perturbMeta(rslts = rslts,rslts1 = rslts1,
-                           rslts2 = rslts2,rslts3 = rslts3)
-  HGSC_Figure6_perturbOC(r = r.prt,
-                         rslts = rslts4,
-                         sig = mTIL.sig,
-                         fitnessR = fitnessR)
+  # HGSC_Figure3_mTIL(r = r.smi,
+  #                   r1 = rmal.smi,
+  #                   rslts = rslts,
+  #                   s = r.merfish)
+  # HGSC_Figure4_CNAs(r=r.smi)
+  # HGSC_Figure5_perturbMeta(rslts = rslts,rslts1 = rslts1,
+  #                          rslts2 = rslts2,rslts3 = rslts3)
+  # HGSC_Figure6_perturbOC(r = r.prt,
+  #                        rslts = rslts4,
+  #                        sig = mTIL.sig,
+  #                        fitnessR = fitnessR)
 }
 
 get.file<-function(file1){

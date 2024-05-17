@@ -1233,3 +1233,60 @@ cast_sites <- function(df, column_idx){
   return(out)
 }
 
+spatial.co.occur<-function(r,type = "Att"){
+  # r - single cell data structure with the following frame information:
+  #     1) frames.tme (k x m1) - the relative abundance of m1 different cell types across k frames
+  #     2) frames.metadata (k x m2) - k frames metadata including "samples" information that denotes which sample each frame is from.
+  # type -  whether the co-occurrence should be tested for "attraction" (i.e., higher than expected)
+  #         or rejections ("i.e., lower than expected). Should be either "Att" or "Rej", respectively.
+  
+  if(!identical(rownames(r$frames.metadata),rownames(r$frames.tme))){
+    print("Error. The frames in r$frames.metadata do not match those in r$frames.tme.")
+    return()
+  }
+  p<-t(combn(colnames(r$frames.tme),2))
+  f1<-function(x,y){
+    return(get.hyper.p.value(x,y)[1])
+  }
+  f<-function(x,p){
+    b<-r$frames.metadata$samples==x
+    Y<-r$frames.tme[b,]
+    if(type == "Att"){
+      J<-apply(p,1,function(p1) f1(Y[,p1[1]]>0,Y[,p1[2]]>0))
+      # J <- p.adjust(J, "BH")
+    }else{
+      J<-apply(p,1,function(p1) f1(Y[,p1[1]]>0,Y[,p1[2]]==0))
+      # J <- p.adjust(J, "BH")
+    }
+    return(J)
+  }
+  J<-t(plyr::laply(unique(r$samples),function(x) f(x,p)))
+  colnames(J)<-unique(r$samples)
+  rownames(J)<-paste(p[,1],p[,2],sep = "_")
+  J[is.na(J)] <- 1
+  return(J)
+}
+
+get.frames<-function(r,n1){
+  r$x<-ceil(r$coor[,1]/n1)
+  r$y<-ceil(r$coor[,2]/n1)
+  b<-r$samples==r$samples[1]
+  # my.plot(r$coor[b,],labels = paste(r$x,r$y)[b])
+  r$frames<-paste0(r$samples,"_X",r$x,"_Y",r$y)
+  return(r)
+}
+
+get.hyper.p.value<-function(b1,b2,full.flag = T){
+  p1<-NA;p2<-NA;e<-0;
+  if(any(b1)&&any(b2)){
+    p1<-max(1-phyper(sum(b1&b2)-1, sum(b1), sum(!b1), sum(b2)),1e-17)
+    e<-sum(b2)*(sum(b1)/length(b2))
+    p2<-sum(b1&b2)/e
+  }
+  if (full.flag){
+    p<-c(p1,p2,sum(b1&b2),e)
+    names(p)<-c('hyper.p.value','ob.vs.exp','ob','exp')
+    return(p)  
+  }
+  return(p1)
+}

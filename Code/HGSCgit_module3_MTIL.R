@@ -7,9 +7,9 @@
 # Figure 3c. mTIL spatial maps (composite made in Adobe Illustrator)
 # Figure 3d: mTIL as a function of TIL proximity and abundance (boxplot)
 # Figure 3e: mTIL ROCs
-# Figure 3f: mTIL in MERFISH (composite made in Adobe Illustrator)
+# Figure 3f: mTIL in Whole Tissue  (composites made in Adobe Illustrator)
 
-HGSC_Figure3_mTIL<-function(r,r1,rslts,s){
+HGSC_Figure3_mTIL<-function(r,r1,rslts){
   if(missing(r)){
     r<-readRDS(get.file("Data/SMI_data.rds"))
     r1<-readRDS(get.file("Data/SMI_data_malignant.rds"))
@@ -22,16 +22,14 @@ HGSC_Figure3_mTIL<-function(r,r1,rslts,s){
   mTIL_Fig3a(r1 = r1,rslts = rslts)
   #2 Regenerate Figure 4B: Gene Set Enrichment Analysis
   mTIL_Fig3b(r=r)
-  #3 Write Table S6B: Full Gene Set Enrichment Analysis
-  mTIL_Table6b(r=r)
   #4 Regenerate Figure 4C: mTIL spatial maps
   mTIL_Fig3c(r = r,r1 = r1,rslts = rslts)
   #5 Regenerate Figure 4D: mTIL as a function of TIL proximity and abundance (boxplot)
   mTIL_Fig3d(r1 = r1,rslts = rslts)
   #6 Regenerate Figure 4E: ROCs
   mTIL_Fig3e(r1 = r1,rslts = rslts)
-  #7 Regenerate Figure 4F: mTIL in MERFISH
-  mTIL_Fig3f(s=s)
+  #7 Regenerate Figure 4F: mTIL in Whole Tissue
+  mTIL_Fig3f(i=4)
 
   return()
 }
@@ -140,35 +138,6 @@ mTIL_Fig3b <- function(r){
       height = 4)
   print(p2)
   dev.off()
-}
-
-mTIL_Table6b <- function(r){
-  mtilgenes <- readRDS(get.file("Results/mTIL_sig.rds"))
-
-  resultsout <- (gprofiler2::gost(mtilgenes$hot100.up,
-                                  organism = "gp__w8SG_tnEY_W4Q",
-                                  custom_bg = r$genes[!grepl("NegPrb", r$genes)],
-                                  user_threshold = 0.05,
-                                  correction_method = "fdr"))
-
-  resultsout2 <- (gprofiler2::gost(mtilgenes$hot100.down,
-                                   organism = "gp__w8SG_tnEY_W4Q",
-                                   custom_bg = r$genes[!grepl("NegPrb", r$genes)],
-                                   user_threshold = 0.05,
-                                   correction_method = "fdr"))
-
-  up <- dplyr::select(resultsout$result,
-                      term_id, query_size, precision, recall, p_value) %>%
-    mutate(direction = "up")
-
-  down <- dplyr::select(resultsout2$result,
-                        term_id, query_size, precision, recall, p_value) %>%
-    mutate(direction = "down")
-
-  write.xlsx(x = rbind(up, down),
-             file = get.file("Tables/TableS6B.xlsx"),
-             asTable = T)
-
 }
 
 mTIL_Fig3c <-function(r,r1,rslts){
@@ -322,42 +291,44 @@ mTIL_Fig3e<-function(r1,rslts,q1 = 0.75){
   return()
 }
 
-mTIL_Fig3f<- function(s){
-  # map mTIL onto MERFISH malignant cells
-  mtilgenes <- readRDS(get.file("Results/mTIL_sig.rds"))
-  s1 <- subset_list(s, s$cells[s$cell.types == "TNK.cell" &
-                                 s$samples == "MER_TB21361"])
-  s2 <- subset_list(s, s$cells[s$cell.types == "Malignant" &
-                                 s$samples == "MER_TB21361"])
-  s2 <- prep4OE(s2, n.cat = 7)
-  oe <- get.OE(s2, mtilgenes)
-  s3 <- subset_list(s, s$cells[s$cell.types != "TNK.cell" &
-                                 s$cell.types != "Malignant" &
-                                 s$samples == "MER_TB21361"])
-
-  # build the plot
-  tnk <- data.frame(s1$coor)
-  mtil <- data.frame(s2$coor, mtil = cap_object(oe[,3], 0.1))
-  other <- data.frame(s3$coor)
-  p <- ggplot() +
-    geom_point(data = other, aes(x = x, y = y), col= "#C8C8C8", size = 0.1) +
-    geom_point(data = mtil, aes(x = x, y = y, col = mtil), size = 0.1) +
-    scale_color_gradient2(low = '#009392', mid = '#f6edbd', high = '#A01C00',
-                          midpoint = mean(mtil$mtil)) +
-    geom_point(data = tnk, aes(x = x, y = y), col = "black", size = 0.1) +
-    coord_fixed() +
-    theme_classic() +
-    theme(panel.background = element_rect(fill = "white"),
-          axis.ticks = element_blank(),
+mTIL_Fig3f<- function(i = 4){
+  # map MTIL onto WT
+  mal <- readRDS(paste0("Data/WT", i , "_Malignant.rds"))
+  plt_mal <- data.frame(mal$coor.global, cap_object(mal$scores, q = 0.1))
+  r <- readRDS(paste0("Data/WT", i ,"_wSubtypes.rds"))
+  nonmal <- subset_list(r, subcells = r$cells[r$cell.types.conf != "Malignant"])
+  remove(r)
+  plt_df <- data.frame(nonmal$coor.global, cell.types = nonmal$cell.types.conf) %>% 
+    mutate(cell.types = c("Other", "TNK.cell")[(cell.types == "TNK.cell") + 1]) 
+  
+  whole = ggplot() + 
+    geom_point(data = filter(plt_df, cell.types == "Other"), 
+               mapping = aes(x = x_global_px, y = y_global_px),
+               color = "lightgrey", 
+               size = 0.1) + 
+    geom_point(data = plt_mal, 
+               mapping = aes(x = x_global_px, y = y_global_px, col = hot100), 
+               size = 0.1) + 
+    scale_color_gradient2(low = '#009392', 
+                          mid = '#f6edbd', 
+                          high = '#A01C00', midpoint = 0) + 
+    geom_point(data = filter(plt_df, cell.types == "TNK.cell"), 
+               mapping = aes(x = x_global_px, y = y_global_px),
+               color = "black", 
+               size = 0.1) +
+    theme_classic() + 
+    theme(panel.background = element_rect(fill = "white"), 
+          axis.line = element_blank(), 
+          axis.ticks = element_blank(), 
           axis.text = element_blank(),
-          axis.title = element_blank(),
-          axis.line = element_blank(),
-          legend.position = "none")
-
+          axis.title = element_blank(), 
+          legend.position = "none") + 
+    coord_fixed() 
+  
   # write to disk
-  png(get.file("Figures/Fig3F.png"),
+  png(get.file("Figures/Fig3f.png"),
       height = 16, width = 16, units = "in", res = 500)
-  print(p)
+  print(whole)
   dev.off()
 }
 

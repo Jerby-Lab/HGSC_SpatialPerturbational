@@ -226,7 +226,7 @@ HGSC_Fig1c_celltype_umaps <- function(cell_2_rgb){
   so_smi <- readRDS(get.file("Results/HGSC_SMI_wUMAP.rds"))
   so_iss <- readRDS(get.file("Results/HGSC_ISS_wUMAP.rds"))
   so_mer <- readRDS(get.file("Results/HGSC_MERFISH_wUMAP.rds"))
-  so_t1 <- readRDS(get.file("Results/HGSC_SMI6K_wUMAP.rds"))
+  so_t1 <- readRDS(get.file("Results/HGSC_SMI6K_UMAP_coord.rds"))
   so_t2 <- readRDS(get.file("Results/HGSC_SMIWT_wUMAP.rds"))
   
   plot_ct_umap <- function(so, cell_2_rgb, title, field = "cell.types.nonmal"){
@@ -252,8 +252,22 @@ HGSC_Fig1c_celltype_umaps <- function(cell_2_rgb){
   a = plot_ct_umap(so_smi, cell_2_rgb, "Discovery Dataset")
   b = plot_ct_umap(so_iss, cell_2_rgb, "Validation Dataset  1")
   c = plot_ct_umap(so_mer, cell_2_rgb, "Validation Dataset 2")
-  d = plot_ct_umap(so_t1, cell_2_rgb, "Test 1", field = "cell.types.conf")
-  e = plot_ct_umap(so_t2, cell_2_rgb, "Test 1", field = "cell.types.conf")
+  d = ggplot(so_t1, aes(x = umap_1, y = umap_2, col = ct)) + 
+    geom_point(size = 0.1) + 
+    theme_classic() +
+    scale_color_manual(values = unlist(
+      lapply(
+        cell_2_rgb, rgb2hex
+      )
+    ), name = "Cell Types") +
+    theme(axis.line = element_blank(),
+          axis.ticks = element_blank(),
+          axis.title = element_blank(),
+          axis.text = element_blank(),
+          legend.title = element_text(size =12),
+          legend.position = "none") +
+    coord_fixed()
+  e = plot_ct_umap(so_t2, cell_2_rgb, "Test 2", field = "cell.types.conf")
   
   col_field <- names(
     cell_2_rgb

@@ -13,30 +13,30 @@
 # Figure 1g. Hypergeometric Spatial Mapping
 # Figure 1h. Cell Co-localization Quotient Analysis
 
-HGSC_Figure1_SpatiomolecularMapping <- function(d, v1, v2, t1, t2, cell_2_rgb){
+HGSC_Figure1_SpatiomolecularMapping <- function(cell_2_rgb){
   print("Section1")
   print("Fig 1a is generated outside of R")
   #1 Regenerate input files for CoMut plot in python
   print("Fig 1b")
-  master <- HGSC_Fig1b_make_comut(d, v1, v2, t1, t2)
+  master <- HGSC_Fig1b_make_comut()
   #6 Regenerate Figure 1c: Cell Type UMAPs
   print("Fig 1c")
-  HGSC_Fig1c_celltype_umaps(r=r,cell_2_rgb = cell_2_rgb)
+  HGSC_Fig1c_celltype_umaps(cell_2_rgb = cell_2_rgb)
   #9 Regenerate Figure 1d: Cell Types in situ
   print("Fig 1d")
-  HGSC_Fig1d_celltypes_insitu(r=r, q=q, s=s, cell_2_rgb=cell_2_rgb)
+  HGSC_Fig1d_celltypes_insitu(cell_2_rgb=cell_2_rgb)
   #10 Regenerate Figure 1e: Coembedding scross ST and scRNA-seq datasets
   print("Fig 1e")
   HGSC_Fig1e_coembedding(cell_2_rgb)
   #11 Regenerate Figure 1f: Cell Type Compositions
   print("Fig 1f")
-  HGSC_Fig1f_celltype_composition(r=r, q=q, s=s, cell_2_rgb = cell_2_rgb)
+  HGSC_Fig1f_celltype_composition(cell_2_rgb = cell_2_rgb)
   #12 Regenerate Figure 1g
   print("Fig 1g")
-  # HGSC_Fig1G_hypergeometric(r=r)
+  HGSC_Fig1g_hg(cell_2_rgb = cell_2_rgb)
   #13 Regenerate Figure 1h: Cell Co-localization Quotient Analysis
   print("Fig 1h")
-  HGSC_Fig1h_clq(r=r, cell_2_rgb = cell_2_rgb)
+  HGSC_Fig1h_clq(cell_2_rgb = cell_2_rgb)
   
   return()
 }
@@ -109,7 +109,6 @@ HGSC_Fig1b_make_comut <- function(){
   for (i in 2:9) {
     selected <- df[,c(1,i)]
     field <- colnames(df)[i]
-    print(field)
     selected$categoory <- field
     out <- selected[,c(1, 3, 2)]
     colnames(out) <- c("sample", "category", "value")
@@ -222,16 +221,19 @@ HGSC_Fig1b_make_comut <- function(){
   return(master)
 }
 
-HGSC_Fig1c_celltype_umaps <- function(r, cell_2_rgb){
+HGSC_Fig1c_celltype_umaps <- function(cell_2_rgb){
+  r <- readRDS(get.file("Data/SMI_data.rds"))
   so_smi <- readRDS(get.file("Results/HGSC_SMI_wUMAP.rds"))
   so_iss <- readRDS(get.file("Results/HGSC_ISS_wUMAP.rds"))
   so_mer <- readRDS(get.file("Results/HGSC_MERFISH_wUMAP.rds"))
+  so_t1 <- readRDS(get.file("Results/HGSC_SMI6K_wUMAP.rds"))
+  so_t2 <- readRDS(get.file("Results/HGSC_SMIWT_wUMAP.rds"))
   
-  plot_ct_umap <- function(r, so, cell_2_rgb, title){
+  plot_ct_umap <- function(so, cell_2_rgb, title, field = "cell.types.nonmal"){
     col_field <- names(
       cell_2_rgb
     )[names(cell_2_rgb) %in% unique(r$cell.types)]
-    p <- DimPlot(so, group.by = "cell.types.nonmal", pt.size = 0.1) +
+    p <- DimPlot(so, group.by = field, pt.size = 0.1) +
       scale_color_manual(values = unlist(
         lapply(
           cell_2_rgb[col_field], rgb2hex
@@ -247,9 +249,11 @@ HGSC_Fig1c_celltype_umaps <- function(r, cell_2_rgb){
     return(p)
   }
   
-  a = plot_ct_umap(r, so_smi, cell_2_rgb, "Discovery Dataset")
-  b = plot_ct_umap(r, so_iss, cell_2_rgb, "Validation Dataset 1")
-  c = plot_ct_umap(r, so_mer, cell_2_rgb, "Validation Dataset 2")
+  a = plot_ct_umap(so_smi, cell_2_rgb, "Discovery Dataset")
+  b = plot_ct_umap(so_iss, cell_2_rgb, "Validation Dataset  1")
+  c = plot_ct_umap(so_mer, cell_2_rgb, "Validation Dataset 2")
+  d = plot_ct_umap(so_t1, cell_2_rgb, "Test 1", field = "cell.types.conf")
+  e = plot_ct_umap(so_t2, cell_2_rgb, "Test 1", field = "cell.types.conf")
   
   col_field <- names(
     cell_2_rgb
@@ -261,16 +265,17 @@ HGSC_Fig1c_celltype_umaps <- function(r, cell_2_rgb){
       )
     ), name = "Cell Types") +
     theme(legend.title = element_text(size =12))
-  d = as_ggplot(get_legend(p))
+  f = as_ggplot(get_legend(p))
   
-  pdf(get.file("Figures/Fig1c.pdf"), width = 10, height = 10)
-  p <- ggarrange(a,b,c,d)
+  pdf(get.file("Figures/Fig1c.pdf"), width = 15, height = 10)
+  p <- ggarrange(a,b,c,d,e,f)
   print(p)
   dev.off()
 }
 
-HGSC_Fig1d_celltypes_insitu<- function(r, q, s, cell_2_rgb){
+HGSC_Fig1d_celltypes_insitu<- function(cell_2_rgb){
   # plot 4 samples from the discovery dataset
+  r<-readRDS(get.file("Data/SMI_data.rds"))
   samples <- c("SMI_T13_F001", "SMI_T10_F001", "SMI_T12_F016", "SMI_T10_F021")
   lapply(samples, function(x){
     segpath <- Sys.glob(paste0(get.file("Results/Segmentation/"),
@@ -287,8 +292,10 @@ HGSC_Fig1d_celltypes_insitu<- function(r, q, s, cell_2_rgb){
                                                            x,
                                                            ".png")))
   })
+  remove(r)
   
   # plot the select sample from the validation 1 dataset (ISS)
+  q<-readRDS(get.file("/Data/Xenium_data.rds"))
   x <- "XEN_T10_A2"
   spot = strsplit(x, split = "_")[[1]][3]
   segpath <- Sys.glob(paste0(get.file("Results/Segmentation/"),
@@ -305,8 +312,10 @@ HGSC_Fig1d_celltypes_insitu<- function(r, q, s, cell_2_rgb){
                                outfile = get.file(paste0("Figures/Fig1d_",
                                                          "XEN_T10_", spot,
                                                          ".png")))
+  remove(q)
   
   # plot select sample from valifation 2 dataset (MERFISH)
+  s <- readRDS(get.file("/Data/MERFISH_data.rds"))
   plot <- filter(data.frame(s[c("cell.types.nonmal", "samples")], s$coor),
                  samples == "MER_TB21361")
   p <- ggplot(plot, aes(x = x, y = y, col = cell.types.nonmal)) +
@@ -323,10 +332,64 @@ HGSC_Fig1d_celltypes_insitu<- function(r, q, s, cell_2_rgb){
       height = 16, width = 16, units = "in", res = 500)
   print(p)
   dev.off()
+  remove(s)
+  
+  # plot selected smaples from test 2
+  t1 <- readRDS(get.file("Data/SMI6K_Data_wSubtypes.rds"))
+  plot <- filter(data.frame(t1[c("cell.types.conf", "samples", "patients", "sites_binary")], t1$coor))
+  samples = c("SMI6K_2_F00021", "SMI6K_2_F00027", "SMI6K_2_F00019", "SMI6K_2_F00037")
+  lapply(samples, function(x){
+    print(x)
+    fov = strsplit(x, split = "_")[[1]][3]
+    segpath <- Sys.glob(paste0(get.file("Results/Segmentation/*"),
+                               fov,
+                               "*.csv"))
+    q <- subset_list(t1, t1$cells[t1$samples == x])
+    celltypes <- q$cell.types.conf
+    celltypes <- gsub("_LC", "", q$cell.types.conf)
+    cell_2_rgb <- list()
+    cell_2_rgb[["B.cell"]] = c(255, 0, 0)
+    cell_2_rgb[["Fibroblast"]] = c(34, 91, 224)
+    cell_2_rgb[["Endothelial"]] = c(166, 128, 71)
+    cell_2_rgb[["Monocyte"]] = c(255, 153, 0)
+    cell_2_rgb[["Malignant"]] = c(7, 224, 0)
+    cell_2_rgb[["TNK.cell"]] = c(255, 247, 0)
+    spatial_sample_visualization(segpath,
+                                 celltypes = celltypes,
+                                 cell2rgb = cell_2_rgb,
+                                 samplename = x,
+                                 outfile = get.file(paste0("Figures/Fig1d_",
+                                                           x, "_", 
+                                                           unique(q$patients), 
+                                                           "_", 
+                                                           unique(q$sites_binary), 
+                                                           ".png")))
+  })
+  remove(t1)
+  
+  t2.3 <- readRDS(get.file("Data/WT3_wSubtypes.rds"))
+  # plot selected smaples from test 2
+  plot <- filter(data.frame(t2.3[c("cell.types.conf", "labels")], t2.3$coor.global))
+  p <- ggplot(plot, aes(x = x_global_px, y = y_global_px, col = cell.types.conf)) +
+    geom_point(size = 0.1) +
+    coord_fixed() +
+    theme_classic() +
+    scale_color_manual(values = lapply(cell_2_rgb, rgb2hex)) +
+    theme(panel.background = element_rect(fill = "black"),
+          axis.ticks = element_blank(),
+          axis.text = element_blank(),
+          axis.title = element_blank(),
+          legend.position = "none")
+  png(get.file("Figures/Fig1d_WT.png"),
+      height = 16, width = 16, units = "in", res = 500)
+  print(p)
+  dev.off()
 }
 
 HGSC_Fig1e_coembedding <- function(cell_2_rgb){
-  coembedding <- readRDS(get.file("Results/HGSC_coembedding.rds"))
+  c1<- readRDS(get.file("Results/HGSC_coembedding.rds"))
+  c2 <- readRDS(get.file("Results/HGSC_coembeddingTest.rds"))
+  coembedding <- rbind(c1, c2)
   
   # cell types figure
   a <- ggplot(coembedding[!is.na(coembedding$cell.types),],
@@ -341,9 +404,11 @@ HGSC_Fig1e_coembedding <- function(cell_2_rgb){
           legend.text = element_text(size = 18)) +
     guides(colour = guide_legend("" , override.aes = list(fill="white",
                                                           size = 2)))
-  
   # dataset figure
-  coembedding$dataset <- factor(coembedding$dataset, levels = c("SMI", "ISS", "MERFISH",
+  coembedding$dataset <- factor(coembedding$dataset, levels = c("SMI", "ISS", 
+                                                                "MERFISH",
+                                                                "Test 1", 
+                                                                "Test 2", 
                                                                 "Vazquez-García", "Geistlinger",
                                                                 "Olalekan", "Regner", "Qian",
                                                                 "Shih", "hornburg"))
@@ -351,7 +416,10 @@ HGSC_Fig1e_coembedding <- function(cell_2_rgb){
   b <- ggplot(coembedding[!is.na(coembedding$cell.types),], aes(x = UMAP_1, y = UMAP_2,
                                                                 col = dataset) ) +
     geom_point(size = 0.05) +
-    scale_color_manual(values = RColorBrewer::brewer.pal(9, "Set3")) +
+    scale_color_manual(values = c(RColorBrewer::brewer.pal(9, "Set3")[1:3], 
+                                  "#DDE78A", 
+                                  "#C47AB3", 
+                                  RColorBrewer::brewer.pal(9, "Set3")[4:9])) +
     theme_classic() +
     theme(plot.title = element_text(hjust = 0.5, size = 18, face = "bold"),
           axis.text = element_blank(),
@@ -363,12 +431,12 @@ HGSC_Fig1e_coembedding <- function(cell_2_rgb){
   
   # print to disk
   pdf(get.file("Figures/Fig1e.pdf"),
-      width = 6, height = 4.5)
+      width = 6*2, height = 4.5*2)
   print(a);print(b)
   dev.off()
 }
 
-HGSC_Fig1f_celltype_composition <- function(r, q, s, cell_2_rgb,
+HGSC_Fig1f_celltype_composition <- function(cell_2_rgb,
                                             ct = c("Malignant", "Fibroblast",
                                                    "Endothelial", "Monocyte",
                                                    "Mast.cell", "B.cell",
@@ -386,6 +454,7 @@ HGSC_Fig1f_celltype_composition <- function(r, q, s, cell_2_rgb,
     }))
     return(out)
   }
+  
   # compute composition for scRNA
   files = Sys.glob(get.file("Data/scRNA*"))
   df_sc <- do.call("rbind", mclapply(files, mc.cores = 10,
@@ -409,6 +478,7 @@ HGSC_Fig1f_celltype_composition <- function(r, q, s, cell_2_rgb,
                                      }))
   
   # composition of discovery dataset (SMI)
+  r<-readRDS(get.file("Data/SMI_data.rds"))
   out <- data.frame(data.frame(r[c("cells", "samples", "patients",
                                    "sites", "sites_binary",
                                    "cell.types")]),
@@ -417,8 +487,10 @@ HGSC_Fig1f_celltype_composition <- function(r, q, s, cell_2_rgb,
     mutate(cell.types = gsub("_LC", "", cell.types)) %>%
     mutate(cell.types = factor(cell.types, levels = ct))
   df_smi <- compute_composition(r, out, ct)
+  remove(r)
   
   # composition of validation datatset 1 (ISS)
+  q<-readRDS(get.file("/Data/Xenium_data.rds"))
   out <- data.frame(data.frame(q[c("cells", "samples",
                                    "patients", "sites",
                                    "sites_binary", "cell.types")]),
@@ -427,8 +499,10 @@ HGSC_Fig1f_celltype_composition <- function(r, q, s, cell_2_rgb,
     mutate(cell.types = gsub("_LC", "", cell.types)) %>%
     mutate(cell.types = factor(cell.types, levels = ct))
   df_xen <- compute_composition(q, out, ct)
+  remove(q)
   
   # composition of validation datatset 2 (MERFISH)
+  s <- readRDS(get.file("/Data/MERFISH_data.rds"))
   out <- data.frame(data.frame(s[c("cells", "samples", "patients",
                                    "sites", "cell.types.nonmal")])) %>%
     mutate(sites_binary = c("Adnexa", "Omentum")[(sites == "Omentum") + 1],
@@ -437,6 +511,7 @@ HGSC_Fig1f_celltype_composition <- function(r, q, s, cell_2_rgb,
     mutate(platform = "ST",
            dataset = "MERFISH")
   df_mer <- compute_composition(s, out, ct)
+  remove(s)
   
   # combine everying together and format data for plotting
   full <- rbind(df_sc, df_smi, df_xen, df_mer)
@@ -487,9 +562,131 @@ HGSC_Fig1f_celltype_composition <- function(r, q, s, cell_2_rgb,
     theme(legend.position = "top")
   as_ggplot(get_legend(g))
   dev.off()
+  
+  # extract from test 1 
+  t1 <- readRDS(get.file("Data/SMI6K_Data_wSubtypes.rds"))
+  dfraw = data.frame(t1[c("samples", "cell.types.conf")])
+  t1ncells = data.frame(t1[c("samples", "cell.types.conf")]) %>% 
+    group_by(samples) %>% summarize(n = length(cell.types.conf))
+  t1nct = bind_rows(lapply(unique(t1ncells$samples), function(s){
+    dff = filter(dfraw, samples == s)
+    dff = dff %>% mutate(cell.types = factor(cell.types.conf, levels = names(cell_2_rgb)))
+    c(samples = s, table(dff$cell.types))
+  }))
+  short = merge(t1nct, t1ncells, by = "samples", all.x = T) 
+  short1 = t(apply(short, 1, function(row){
+    as.numeric(row[2:9])/as.numeric(row[10])
+  }))
+  colnames(short1) = colnames(short)[2:9]
+  dfshort = data.frame(samples = short$samples, short1)
+  dflong = dfshort %>% gather(key = cell.types, 
+                              value = proportion, -samples) %>% mutate(dataset = "Test 1")
+  remove(t1)
+  
+  # extract from test 2 
+  t2.1<- readRDS(get.file("Data/WT1_wSubtypes.rds"))
+  t2.2 <- readRDS(get.file("Data/WT2_wSubtypes.rds"))
+  t2.3 <- readRDS(get.file("Data/WT3_wSubtypes.rds"))
+  t2.4 <- readRDS(get.file("Data/WT4_wSubtypes.rds"))
+  df1short = bind_rows(lapply(list(t2.1, t2.2, t2.3, t2.4), function(s){
+    c(samples = unique(s$patients), table(s$cell.types.conf)/length(s$cell.types.conf))
+  }))
+  df1long = df1short %>% gather(key = cell.types, value = proportion, -samples) %>% mutate(dataset = "Test 2")
+  
+  # combine test 1 and test 2 
+  dfpatch = rbind(dflong, df1long)
+  dfpatch <- dfpatch %>% mutate(dataset = factor(dataset,
+                                           levels = c("Test 1", "Test 2"))) %>%
+    mutate(proportion = as.numeric(proportion))
+  order <- (dfpatch %>% filter(
+    cell.types == "Malignant") %>% arrange(proportion))$samples
+  
+  full = dfpatch %>% mutate(samples = factor(samples, levels = order),
+                          cell.types = factor(
+                            cell.types,
+                            levels = c("Malignant", "Fibroblast",
+                                       "Endothelial","Monocyte",
+                                       "Mast.cell", "TNK.cell",
+                                       "B.cell", "Other")))
+  # make plots 
+  pdf(get.file("Figures/Fig1f-p.pdf"),
+      width = 4, height = 3)
+  p <- ggplot(full, aes(x = samples, y = proportion, fill = cell.types)) +
+    geom_bar(stat = "identity") +
+    facet_grid(~dataset, scales = "free_x", space = "free", labeller = as_labeller(labels)) +
+    scale_fill_manual(values = lapply(cell_2_rgb, rgb2hex)) +
+    theme(axis.text.x = element_blank(),
+          strip.text = element_text(color = "lightgrey"))
+  print(p)
+  dev.off()
 }
 
-HGSC_Fig1h_clq <- function(r, cell_2_rgb){
+HGSC_Fig1g_hg <- function(cell_2_rgb){
+  r <-readRDS(get.file("Data/SMI_data.rds"))
+  r1<-get.frames(r,n1=300) 
+  row.names(r1$frames.metadata) <- r1$frames.metadata$Frame
+  
+  # clean up tme the data 
+  r1$frames.metadata<-as.data.frame(table(r1$frames))
+  colnames(r1$frames.metadata)<-c("Frame","No_cells")
+  row.names(r1$frames.metadata) <- r1$frames.metadata$Frame
+  r1$frames.metadata$samples <- unlist(lapply(r1$frames.metadata$Frame, 
+                                              function(x){
+                                                paste(strsplit(as.character(x), 
+                                                               split = "_")[[1]][1:3], 
+                                                      collapse = "_")}))
+  r1$cell.types.all <- gsub("_LC", "", r1$cell.types)
+  df <- data.frame(r1[c("frames", "cell.types.all")])
+  df <- df %>% 
+    dplyr::group_by(frames, cell.types.all) %>%
+    dplyr::summarize(n = length(cell.types.all)) %>%
+    dplyr::ungroup() %>%
+    tidyr::spread(key = cell.types.all, n)
+  df[is.na(df)] <- 0
+  tme <- t(apply(df[2:8], 1, function(x) x/sum(x)))
+  row.names(tme) <- df$frames
+  r1$frames.tme <- tme
+  
+  # do the hypergeometic test
+  attr <- spatial.co.occur(r1, type = "Att")
+  rep <- spatial.co.occur(r1, type = "Rep")
+  attr[(attr < 0.05)] <- "High"
+  attr[(attr != "High")] <- "NS"
+  attr[(rep < 0.05)] <- "Low"
+  
+  # make the plotting data 
+  plt <- data.frame(attr) 
+  plt_long <- plt %>% mutate(pairs = row.names(plt)) %>% 
+    tidyr::gather(value = hg, key = "samples", -pairs) %>% 
+    dplyr::mutate(hg = factor(hg, levels = c("High","NS","Low"))) %>% 
+    dplyr::mutate(pairs = gsub("_", ", ",pairs)) %>% 
+    dplyr::mutate(pairs = gsub("\\.", " ",pairs)) %>% 
+    dplyr::mutate(pairs = gsub("TNK", "T/NK", pairs))
+  order <- (plt_long %>% 
+              dplyr::group_by(pairs) %>% 
+              dplyr::summarize(High = sum(hg == "High"),
+                               NS = sum(hg == "NS"), 
+                               Low = sum(hg == "Low")) %>% 
+              dplyr::arrange(Low, desc(High)))$pairs
+  plt_long <- plt_long %>% dplyr::mutate(pairs = factor(pairs, levels = order))
+  
+  # plot to disk 
+  p <- ggplot(plt_long, aes(x = pairs, fill = hg)) + 
+    geom_bar(stat = "count", position = "stack") +
+    coord_flip() + 
+    scale_fill_manual(values = c("darkred", "grey", "dodgerblue4"), 
+                      name = "Co-localization\nFrequency") + 
+    theme_classic() + 
+    ylab("# Samples") + 
+    xlab("Cell Type Pairs")
+  pdf(get.file("Figures/Fig1g.pdf"),
+      width = 8, height = 5)
+  print(p)
+  dev.off()
+}
+
+HGSC_Fig1h_clq <- function(cell_2_rgb){
+  r <-readRDS(get.file("Data/SMI_data.rds"))
   # Compute Colocalization Quotient
   clq <- function(a, b, rs, field) {
     C_b_a <- sum(rs$neighbors[rs[[field]] == a,b], na.rm = T)
@@ -527,7 +724,6 @@ HGSC_Fig1h_clq <- function(r, cell_2_rgb){
   plot_clq_boxplots <- function(clq_df, suffix = ""){
     # do ttest just fyi
     ttest <- t.test(clq_df$CLQ_Fib_TNK, clq_df$CLQ_Mal_TNK, paired = T)
-    print(ttest)
     clq_df <- clq_df[complete.cases(clq_df),] %>%
       mutate(Fibroblast = log2(CLQ_Fib_TNK)) %>%
       mutate(Malignant = log2(CLQ_Mal_TNK))
@@ -556,7 +752,7 @@ HGSC_Fig1h_clq <- function(r, cell_2_rgb){
   
   # add neighbors
   r$neighbors <- readRDS(get.file("Results/HGSC_SMI_Neighbors.rds"))
-  subset <- row.names(r$neighbors[complete.cases(r$neighbors),])
+  subset = r$cells[r$cells %in% row.names(r$neighbors)]
   r1 <- subset_list(r, subset)
   
   # calculate clq
@@ -570,3 +766,6 @@ HGSC_Fig1h_clq <- function(r, cell_2_rgb){
   # plot clq boxplots
   plot_clq_boxplots(clq_df)
 }
+
+
+

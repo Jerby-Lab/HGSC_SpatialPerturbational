@@ -7,11 +7,10 @@
 # Figure 2a. CD8 T cell umaps
 # Figure 2b. CD8 T cell TIP genes' association with tumor infiltration in different cell subtypes.
 # Figure 2c. Xenium spatial maps with CD8 TIP
-# Figure 2d. Fibroblast-only UMAP
+# Figure 2d. CD8 T cell states
 # Figure 2e. Heatmap of Desmoplastic Fibroblast Program
 # Figure 2f. Desmoplastic Fibroblast Program in situ (composite with H&E made in Adobe Illustrator)
-# Figure 2g. Desmoplastic Fibroblast Program vs. T/NK Localization
-# Figure 2h. Ligand-receptor interactions (generated via CytoScape)
+# Figure 2g. Spatial L-R Network 
 
 HGSC_Figure2_TIP_DF<-function(r1.smi,r.xenium,r1.xenium,R,
                               r = r.smi,
@@ -41,30 +40,19 @@ HGSC_Figure2_TIP_DF<-function(r1.smi,r.xenium,r1.xenium,R,
   P<-TIP_CD8.Xenium.test(r1 = r1.xenium)
   #5 Optional: Regenerate an extended version of Figure 3c
   TIP_Fig2c_Xenium.extended.version(r = r.xenium,r1 = r1.xenium)
-  #6 Write TIPs to Supplemetary Table 4.
-  write.xlsx(x = as.data.frame(list.2.mat(R$sig)),file = get.file("Tables/Table4.xlsx"),asTable = T)
-
-  #7 Regenerate Figure 2d: Fibroblast UMAP with Site and Morphology Annotations
+  #6 Plot CD8 T cell states 
   print("Fig 2d")
-  HGSC_Fig2d_fib_umap(r=r, morph = morph)
-  #8 Write DF genes to Supplementary Table 5a
-  print("SupplementaryTable 5a")
-  HGSC_Table5a_write_daf(daf = daf)
-  #9 Regenerate Figure 2e: DAF heatmap
+  #7 Regenerate Figure 2e: DAF heatmap
   print("Fig 2e")
   HGSC_Fig2e_daf_heatmap(r=r, morph = morph, daf = daf)
-  #10 Regenerate PNG Images for Figure 2f: DAF in situ
+  #8 Regenerate PNG Images for Figure 2f: DAF in situ
   print("Fig 2f")
   HGSC_Fig2f_daf_in_situ(r=r, daf = daf, cell_2_rgb = cell_2_rgb)
-  #11 Regenerate Figure 2g: Desmoplasia Score as a function of T/NK localization
+  #9 Regenerate Figure 2g: Make L-R table 
   print("Fig 2g")
-  # HGSC_Fig2g_daf_tnk(r=r, daf =daf)
-  #12 Write DAF full gene set results to Supplementary Table 5b
-  print("Supplementary Table 5b")
-  HGSC_Table5b_write_daf_gsea(r=r,daf=daf)
+  # HGSC_Fig2g_LR()
 
   return()
-
 }
 
 TIP_Fig2a_umaps<-function(r1){
@@ -299,8 +287,8 @@ HGSC_Fig2e_daf_heatmap <- function(r, morph, daf){
                               arrange(desc(om), sites))
 
   # plot to disk
-  pdf(get.file("Figures/Fig2e.pdf"),
-      width = 10, height = 5)
+  # pdf(get.file("Figures/Fig2e.pdf"),
+  #     width = 10, height = 5)
   plt <- pheatmap(mat[oe_mean$samples,gene],
                   cluster_rows = F,
                   cluster_cols = F,
@@ -309,37 +297,8 @@ HGSC_Fig2e_daf_heatmap <- function(r, morph, daf){
                   show_colnames = T,
                   annotation_colors = ann_colors,
                   border_color = NA,
-                  annotation_col = ann_col)
-  dev.off()
-}
-
-HGSC_Table5b_write_daf_gsea <- function(r, daf){
-  resultsout <- (gprofiler2::gost(union(daf$Fibroblast.paired.up,
-                                        daf$Fibroblast.unpaired.up),
-                                  organism = "gp__w8SG_tnEY_W4Q",
-                                  custom_bg = r$genes[!grepl("NegPrb",
-                                                             r$genes)],
-                                  user_threshold = 0.05,
-                                  correction_method = "fdr"))
-  up <- dplyr::select(resultsout$result,
-                      term_id, query_size, precision, recall, p_value) %>%
-    mutate(direction = "up")
-
-  resultsout2 <- (gprofiler2::gost(union(daf$Fibroblast.paired.down,
-                                         daf$Fibroblast.unpaired.down),
-                                   organism = "gp__w8SG_tnEY_W4Q",
-                                   custom_bg = r$genes[!grepl("NegPrb",
-                                                              r$genes)],
-                                   user_threshold = 0.05,
-                                   correction_method = "fdr"))
-
-  down <- dplyr::select(resultsout2$result,
-                        term_id, query_size, precision, recall, p_value) %>%
-    mutate(direction = "down")
-
-  write.xlsx(x = rbind(up, down),
-             file = get.file("Tables/Table5b.xlsx"),
-             asTable = T)
+                  annotation_col = ann_col, filename = get.file("Figures/Fig2e.pdf"))
+  # dev.off()
 }
 
 HGSC_Fig2f_daf_in_situ <- function(r, daf, cell_2_rgb, s = "SMI_T11_F019"){

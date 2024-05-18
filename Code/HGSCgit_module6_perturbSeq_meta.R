@@ -1,4 +1,4 @@
-#### Results Section 5 ###
+#### Results Section 6 ###
 # Figure 6. Perturb-Seq meta-analyses
 # Table S6A. mTIL program regulators.
 

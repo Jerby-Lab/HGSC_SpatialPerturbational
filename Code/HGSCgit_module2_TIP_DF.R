@@ -208,20 +208,6 @@ HGSC_Fig2d_fib_umap<- function(r, morph){
   dev.off()
 }
 
-HGSC_Table5a_write_daf <- function(daf){
-  ord1 <- order(union(daf$Fibroblast.paired.up, daf$Fibroblast.unpaired.up))
-  up <- union(daf$Fibroblast.paired.up, daf$Fibroblast.unpaired.up)[ord1]
-  ord2 <- order(union(daf$Fibroblast.paired.down, daf$Fibroblast.unpaired.down))
-  down <- union(daf$Fibroblast.paired.down, daf$Fibroblast.unpaired.down)[ord2]
-
-  daf_sig <- c()
-  daf_sig$DAF_up <- up
-  daf_sig$DAF_down <- down
-  write.xlsx(x = as.data.frame(list.2.mat(daf_sig)),
-             file = get.file("Tables/Table5a.xlsx"),
-             asTable = T)
-}
-
 HGSC_Fig2e_daf_heatmap <- function(r, morph, daf){
   subcells = r$cells[r$cell.types == "Fibroblast"]
   q <- subset_list(r, subcells)

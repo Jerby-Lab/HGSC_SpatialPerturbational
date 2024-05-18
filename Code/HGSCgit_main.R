@@ -6,6 +6,7 @@
 #1 Data processing and annotations (Figure 1)
 #2 Effector T Cells Infiltrate the Tumor (Figure 2)
 #3 Malignant TIL (mTIL) program (Figure 3)
+#4 mTIL program as predictor of clinical response (Figure 4)
 #5 CNAs mapping to mTIL and TIL levels (Figure 5)
 #6 Perturb-Seq meta-analyses (Figure 6)
 #7 Perturb-Seq and genetic screen analyses (Figure 7)
@@ -44,7 +45,7 @@ HGSC_main<-function(){
   fitnessR<-readRDS(get.file("Results/HGSC_CRISPR.rds"))
 
   #8 Regenerate Main Figures
-  HGSC_Figure1_SpatiomolecularMapping(cell_2_rgb=cell_2_rgb)
+  # HGSC_Figure1_SpatiomolecularMapping(cell_2_rgb=cell_2_rgb)
   r.smi<-readRDS(get.file("Data/SMI_data.rds"))
   r.xenium<-readRDS(get.file("/Data/Xenium_data.rds"))
   HGSC_Figure2_TIP_DF(rTNK.smi,

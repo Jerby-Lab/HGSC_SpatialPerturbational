@@ -1,4 +1,4 @@
-#### Results Section 4 ###
+#### Results Section 5 ###
 # Figure 5. Copy Number Alterations (CNAs) mapping to mTIL and TIL levels in Discovery spatial data and TCGA.
 #
 # Figure 5a: mTIL at baseline
@@ -54,7 +54,7 @@ HGSC_Fig5a <-function(r1,rslts){
     ylab("MTIL Expression") + 
     ggtitle("MTIL expression per Tissue Profile, T/NK cell negative Niches")
   
-  pdf(get.file("Figures/Fig5a.pdf"), width = 8, height = 3)
+  pdf(get.file("Figures/Fig5a.pdf"), width = 6, height = 4)
   print(p)
   dev.off()
 }

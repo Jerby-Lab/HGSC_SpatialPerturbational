@@ -1,4 +1,4 @@
-#### Results Section 5 ###
+#### Results Section 7 ###
 # Figure 7. Perturb-Seq meta-analyses
 
 # Figure 7. High content CRISPR screen in ovarian cancer cells in monoculture and co-culture with targeting NK and T cells.
@@ -204,10 +204,6 @@ create_volcano_plot <- function(x, y,dot_names, zcat = 1.3,x_label = "X-axis", y
           axis.text = element_text(size = 12)) +
     geom_text_repel(data = subset(df, significant != "No"), aes(label = dot_names), size = cex, box.padding = 0.5)+
     guides(color = guide_legend(title = "Significance"))
-  # geom_text(data = subset(df, significant != "No"), aes(label = dot_names), vjust = -1, hjust = 0, size = 3)
-
-  # p <- p + guides(color = guide_legend(title = "Significance",
-  #                                      override.aes = list(shape = c(16,17, 18, 19, 20))))
   return(p)
 
 }

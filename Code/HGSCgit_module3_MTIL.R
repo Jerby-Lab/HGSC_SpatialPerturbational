@@ -1,6 +1,5 @@
 #### Results Section 3 ###
 # Figure 3. mTIL
-# Supplementary Table 6. mTIL program and its regulators.
 
 # Figure 3a. mTIL heatmap
 # Figure 3b. mTIL Gene Set Enrichment Analysis

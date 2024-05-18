@@ -12,27 +12,10 @@
 #8 Validation of Genetic KO's (Figure 8)
 
 HGSC_main<-function(){
-  if(!file.exists(get.file("Figures/Fig3A.pdf"))){HGSC_source()}
+  if(!file.exists(get.file("Figures/Fig10A.pdf"))){HGSC_source()}
 
-  #1 Download Presets and Preprocessed Data for Spatiomolecular Profiling Analyses
+  #1 Download Presets 
   cell_2_rgb <- readRDS(get.file("Data/Cell_Colors.rds"))
-  # r.smi<-readRDS(get.file("Data/SMI_data.rds"))
-  # r.xenium<-readRDS(get.file("/Data/Xenium_data.rds"))
-  # r.merfish <- readRDS(get.file("/Data/MERFISH_data.rds"))
-  # r.test1 <- readRDS(get.file("Data/SMI6K_Data_wSubtypes.rds"))
-  # r.test2.1 <- readRDS(get.file("Data/WT1_wSubtypes.rds"))
-  # r.test2.2 <- readRDS(get.file("Data/WT2_wSubtypes.rds"))
-  # r.test2.3 <- readRDS(get.file("Data/WT3_wSubtypes.rds"))
-  # r.test2.4 <- readRDS(get.file("Data/WT4_wSubtypes.rds"))
-  # r<-readRDS(get.file("Data/SMI_data.rds"))
-  # q<-readRDS(get.file("/Data/Xenium_data.rds"))
-  # s <- readRDS(get.file("/Data/MERFISH_data.rds"))
-  # t1 <- readRDS(get.file("Data/SMI6K_Data_wSubtypes.rds"))
-  # t2.1<- readRDS(get.file("Data/WT1_wSubtypes.rds"))
-  # t2.2 <- readRDS(get.file("Data/WT2_wSubtypes.rds"))
-  # t2.3 <- readRDS(get.file("Data/WT3_wSubtypes.rds"))
-  # t2.4 <- readRDS(get.file("Data/WT4_wSubtypes.rds"))
-  
 
   #2 Download T/NK and malignant spatial data.
   rTNK.smi<-HGSC_SMI.process.CD8()
@@ -60,7 +43,7 @@ HGSC_main<-function(){
   mTIL.sig<-readRDS(get.file("Results/HGSC_mTIL.rds"))
   fitnessR<-readRDS(get.file("Results/HGSC_CRISPR.rds"))
 
-  #8 Regenerate main Figures and Tables.
+  #8 Regenerate Main Figures
   HGSC_Figure1_SpatiomolecularMapping(cell_2_rgb=cell_2_rgb)
   r.smi<-readRDS(get.file("Data/SMI_data.rds"))
   r.xenium<-readRDS(get.file("/Data/Xenium_data.rds"))
@@ -70,17 +53,18 @@ HGSC_main<-function(){
                       r = r.smi,
                       morph=morph, daf=daf,
                       cell_2_rgb=cell_2_rgb)
-  # HGSC_Figure3_mTIL(r = r.smi,
-  #                   r1 = rmal.smi,
-  #                   rslts = rslts,
-  #                   s = r.merfish)
-  # HGSC_Figure4_CNAs(r=r.smi)
-  # HGSC_Figure5_perturbMeta(rslts = rslts,rslts1 = rslts1,
-  #                          rslts2 = rslts2,rslts3 = rslts3)
-  # HGSC_Figure6_perturbOC(r = r.prt,
-  #                        rslts = rslts4,
-  #                        sig = mTIL.sig,
-  #                        fitnessR = fitnessR)
+  HGSC_Figure3_mTIL(r = r.smi,
+                    r1 = rmal.smi,
+                    rslts = rslts)
+  HGSC_Figure4_ICB()
+  HGSC_Figure5_CNAs(r=r.smi)
+  HGSC_Figure6_perturbMeta(rslts = rslts,rslts1 = rslts1,
+                           rslts2 = rslts2,rslts3 = rslts3)
+  HGSC_Figure7_perturbOC(r = r.prt,
+                         rslts = rslts4,
+                         sig = mTIL.sig,
+                         fitnessR = fitnessR)
+  HGSC_Figure8_KOValidation()
 }
 
 get.file<-function(file1){

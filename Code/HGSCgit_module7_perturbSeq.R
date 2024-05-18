@@ -103,9 +103,15 @@ HGSC_Fig7E<-function(rslts,sig){
                           Condition = get.strsplit(prtA,".",1))
 
   pdf(get.file("Figures/Fig7E.pdf"))
-  call.heatmap(X1,cluster.flag = "row",cexRow = 0.5,col.labels = X.lab,cexCol = 0.5,
-               xlab = "Pertrubations",ylab = "Genes",m.value = "Z score",legend.flag = F)
-  dev.off();par(font.axis = 2);par(font.lab = 2);par(font = 2)
+  blue_white_red <- colorRampPalette(c("dodgerblue4", "white", "red3"))(100)
+  row.names(X.lab) <- colnames(X1)
+  pheatmap(t(X1), cluster_cols = T, cluster_rows = F, color = blue_white_red, treeheight_col = 0,
+           annotation_row = X.lab, annotation_colors = 
+           list(mTIL = c(Repressor = "darkred", Activator = "dodgerblue4"),
+             Condition = c(Co2 = "gold", Co1 = "purple4", Mono = "turquoise4") 
+           ), filename = get.file("Figures/Fig7E.pdf"), width = 6, height = 8, 
+           labels_row = unlist(lapply(colnames(X1), 
+                                      function(x) {strsplit(x, split = "\\.")[[1]][2]})))
   return()
 
 }

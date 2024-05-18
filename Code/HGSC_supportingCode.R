@@ -1290,3 +1290,87 @@ get.hyper.p.value<-function(b1,b2,full.flag = T){
   }
   return(p1)
 }
+
+cap_object <- function (X, q) 
+{
+  ceil_q <- 1 - q
+  ceil <- quantile(X, ceil_q)
+  floor <- quantile(X, q)
+  X[X > ceil] <- ceil
+  X[X < floor] <- floor
+  return(X)
+}
+
+km.plot3 <- function(r,v,main = '',X = NULL,qua = 0.2,xlim = NULL,direction = 0,
+         legend.flag = T,ylab = "Survival probability",four.levels = F){
+  M1<-summary(coxph(r$survival ~ v))$coefficients
+  coxD<-M1[1,"coef"]
+  cox.p<-M1[1,"Pr(>|z|)"]
+  if(!is.null(X)){
+    Mc<-summary(coxph(r$survival ~ cbind(v,X)))$coefficients
+    cox.p.c<-Mc[1,"Pr(>|z|)"]
+    coxD.c<-Mc[1,"coef"]
+  }
+  # q1<-mean(v,na.rm=T)+(sd(v,na.rm = T)*0.75);q2<-mean(v,na.rm=T)-(sd(v,na.rm = T)*0.75);b1<-v>=q1;b2<-v<=q2
+  b1<-v>=quantile(v,1-qua,na.rm = T);b2<-v<=quantile(v,qua,na.rm = T)
+  G<-ifelse(b1,"High","Moderate")
+  col<-c("red","blue","darkgreen")
+  if(four.levels){
+    b1m<-!b1&!b2&v>=median(v,na.rm = T)
+    b2m<-!b1&!b2&v<median(v,na.rm = T)
+    G[b1m]<-"Moderate.high";G[b2m]<-"Moderate.low"
+    col<-c("red","blue","darkgreen","black")
+  }
+  G[b2]<-"Low"
+  km2<-npsurv(r$survival ~ G)
+  sdf2<-survdiff(r$survival ~ G)
+  sdf2<-(1 - pchisq(sdf2$chisq, length(sdf2$n) - 1))/3
+  if(four.levels){
+    l<-paste0(c("High","Low","Moderate.high","Moderate.low")," (",km2$n,")")
+  }else{
+    l<-paste0(c("High","Low","Moderate")," (",km2$n,")")
+  }
+  
+  if(is.null(xlim)){
+    survplot(km2,col = col,lty = c(1,1), xlab = 'Years',label.curves = F,
+             ylab = ylab,n.risk = T)
+  }else{
+    survplot(km2,col = col,lty = c(1,1), xlab = 'Years',label.curves = F,xlim = c(0,xlim),
+             ylab = ylab,n.risk = T)
+  }
+  if(legend.flag){
+    legend("topright",fill = col[c(setdiff(1:length(col),2),2)],cex = 0.8,
+           legend = l[c(setdiff(1:length(col),2),2)])
+  }
+  
+  if(!is.null(X)){
+    if(direction==0){
+      P<-c(cox.p,cox.p.c,sdf2)
+    }else{
+      P<-get.onesided.p.value(direction*c(coxD,coxD.c,coxD),c(cox.p,cox.p.c,sdf2))
+    }
+    P<-format(P,scientific = T,digits = 2)
+    main<-paste0(main,"\nP=",P[1],", Pc=",P[2],"\nlogrank=",P[3])
+  }else{
+    if(direction==0){
+      P<-c(cox.p,sdf2)
+    }else{
+      P<-get.onesided.p.value(direction*c(coxD,coxD),c(cox.p,sdf2))
+    }
+    P<-format(P,scientific = T,digits = 2)
+    main<-paste0(main,"\nP=",P[1],", logrank=",P[2])
+  }
+  title(main,cex.main =1)
+  return(G)
+}
+
+get.onesided.p.value <- function(c,p){
+  p[p==0] <-1e-17
+  p.one.side <- p
+  p.one.side[] <- NA
+  b<-c>0&!is.na(c)
+  p.one.side[b]=p[b]/2
+  b<-c<=0&!is.na(c)
+  p.one.side[b]=1-(p[b]/2)
+  return(p.one.side)
+}

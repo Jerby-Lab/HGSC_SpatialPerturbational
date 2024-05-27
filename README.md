@@ -1,13 +1,13 @@
 # Mapping ovarian cancer spatial organization uncovers immune evasion drivers at the genetic, cellular, and tissue level
 
-This resource provides the code developed in the study of _Yeh, Aguirre, Laveroni _et al_. **_"Mapping ovarian cancer spatial organization uncovers immune evasion drivers at the genetic, cellular, and tissue level"_**. It provides the code to reproduce the main figures in this study and serves as a framework to perform integrated analyses with single cell spatial transcriptomics and perturb-seq data. 
+This resource provides the code developed in the study of Yeh, Aguirre, Laveroni _et al_. **_"Mapping ovarian cancer spatial organization uncovers immune evasion drivers at the genetic, cellular, and tissue level"_**. It provides the code to reproduce the main figures in this study and serves as a framework to perform integrated analyses with single cell spatial transcriptomics and perturb-seq data. 
 
 ## **Data**
 
 The raw and processed data will be provided on the Gene Expression Omnibus and Zenodo **when the study is officially published**. The data will also be available for download and interactive exploration on the Single Cell Portal.
 
 ## **Quick start**
-Follow the steps below to reproduce the figures and tables in Yeh, Aguirre, Laveroni _et al.: 
+Follow the steps below to reproduce the figures and tables in Yeh, Aguirre, Laveroni _et al._: 
 
 1. Clone this repository by executing `git clone https://github.com/Jerby-Lab/HGSC_SpatialPerturbational/`. 
 

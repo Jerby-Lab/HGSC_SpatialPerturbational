@@ -1,6 +1,6 @@
 # Mapping ovarian cancer spatial organization uncovers immune evasion drivers at the genetic, cellular, and tissue level
 
-This resource provides the code developed in the study of Yeh, Aguirre, Laveroni _et al_. **_"Mapping ovarian cancer spatial organization uncovers immune evasion drivers at the genetic, cellular, and tissue level"_**. It provides the code to reproduce the main figures in this study and serves as a framework to perform integrated analyses with single cell spatial transcriptomics and perturb-seq data. 
+This resource provides the code developed in the study of _Yeh, Aguirre, Laveroni _et al_. **_"Mapping ovarian cancer spatial organization uncovers immune evasion drivers at the genetic, cellular, and tissue level"_**. It provides the code to reproduce the main figures in this study and serves as a framework to perform integrated analyses with single cell spatial transcriptomics and perturb-seq data. 
 
 ## **Data**
 

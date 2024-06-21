@@ -1,18 +1,22 @@
 #### Results Section 1 ###
 # Figure 1. Single cell spatial transcriptomics (ST) mapping of HGSC.
-# Supplementary Table 1. Specifications of datasets collected and/or analyzed in this study. Associated with Figure 1.
-# Supplementary Table 2. Metadata for each tissue section profiled by spatial transcriptomics. Associated with Figure 1.
-# Supplementary Table 3. Cell Type Signature Genes. Includes both signature genes derived from scRNA-Seq and CellTypist Immune Encyclopedia (A) and from spatial transcriptomics (B). Associated with Figures 1, S1, S2.
-
-# Figure 1a. Spatial Cohort Design (generated in Figma, with Lettie Mcguire)
+#
+# Figure 1a. Spatial Cohort Design (generated in Figma)
 # Figure 1b. CoMut Plot (output files in Results/ used for python comut code)
 # Figure 1c. Cell Type UMAPs
-# Figure 1d. Cell Types in situ (composite with H&E images made in Adobe Illustrator)
+# Figure 1d. Cell Types in situ 
 # Figure 1e. Coembedding scross ST and scRNA-seq datasets
 # Figure 1f. Cell Type Compositions
 # Figure 1g. Hypergeometric Spatial Mapping
 # Figure 1h. Cell Co-localization Quotient Analysis
 
+#' Figure 1 Wrapper Function
+#'
+#' This function calls code to reproduce main text Figures 1b-h. 
+#'
+#' @param cell_2_rgb a named list of colors assigned to each of the cell types
+#' @return this function returns nothing, but writes figures in .pdf format 
+#' in the Figures/ folder. 
 HGSC_Figure1_SpatiomolecularMapping <- function(cell_2_rgb){
   print("Section1")
   print("Fig 1a is generated outside of R")
@@ -41,29 +45,36 @@ HGSC_Figure1_SpatiomolecularMapping <- function(cell_2_rgb){
   return()
 }
 
+#' Figure 1b. CoMut Files
+#'
+#' This function generates the .tsv files that are inputed into python "CoMut" 
+#' code for generating a summary figure of multi-modal data for this HGSC cohort
+#'
+#' @return a data frame of simplified clinical meta data. 
 HGSC_Fig1b_make_comut <- function(){
   master <- readRDS(get.file("Data/MasterProfileData.rds"))
   
-  # fix immunotherapy
-  master$immunotherapy[grepl("embro", master$immunotherapy) | grepl( "varlilumab" , master$immunotherapy)] <- "Yes"
+  # fix immunotherapy text
+  master$immunotherapy[grepl("embro", master$immunotherapy) | 
+                         grepl( "varlilumab" , master$immunotherapy)] <- "Yes"
   master$immunotherapy[master$immunotherapy == "NA"] <- NA
   master$immunotherapy[grepl("placebo", master$immunotherapy)] <- NA
   master$immunotherapy[master$immunotherapy != "Yes"] <- "No"
   master$immunotherapy <- factor(master$immunotherapy, levels = c("No", "Yes"))
   
-  # parpi
+  # recode parpi inhibitor usage
   master$parpi <- master$parpi
   master$parpi[master$parpi == 3] <- NA
   master$parpi[master$parpi == 2 | master$parpi == 4] <- 1
   master$parpi <- factor(master$parpi, levels = c(0, 1))
   
-  # fix bevacizumab 
+  # fix text for whether patient receivved bevacizumab 
   master$`1L`[master$`1L` == 5] <- NA
   master$`1L`[master$`1L` == 2] <- NA
   master$`1L` <- c("No", "", "Yes")[master$`1L`]
   master$`1L` <- factor(master$`1L`, levels = c("No", "Yes"))
   
-  # CLINICAL
+  # write clinical data to disk
   outdir <- paste0(get.file("Results/CoMut/"))
   if(!dir.exists(outdir)){dir.create(outdir, recursive = T)}
   df <- select(master,
@@ -76,7 +87,7 @@ HGSC_Fig1b_make_comut <- function(){
                immunotherapy,
                outcome,
                pfs4)
-
+  
   # fix outcome 
   df$outcome <- unlist(lapply(df$outcome, function(x){
     if (is.na(x)) {
@@ -90,6 +101,7 @@ HGSC_Fig1b_make_comut <- function(){
     }
   }))
   
+  # format factors for data
   df <- df %>%
     mutate(patients = as.character(patients),
            age = c("<65", ">65")[(as.numeric(age) >= 65) + 1],
@@ -102,10 +114,12 @@ HGSC_Fig1b_make_comut <- function(){
            pfs4= c("<6m", ">6m")[(as.numeric(pfs4) >= 180) + 1]) %>%
     unique()
   
+  # remove unwanted column. 
   df <- df[-4]
   colnames(df) <- c("Patient", "Age", "Stage", "PARPi", "NACT",
                     "Immunotherapy", "Outcome", "PFS","Bevacizumab")
   
+  # write treatment history out 
   for (i in 2:9) {
     selected <- df[,c(1,i)]
     field <- colnames(df)[i]
@@ -117,7 +131,8 @@ HGSC_Fig1b_make_comut <- function(){
                 row.names = F, quote = F)
   }
   
-  # MUTATIONS
+  # manage mutations (TP53 and BRCA1/2 mutations)
+  ## tp53
   tp53<- master %>%
     select(patients, TP53_Somatic, TP53_Germline) %>% unique()
   tp53$somatic <- unlist(lapply(tp53$TP53_Somatic, function(x){
@@ -142,7 +157,7 @@ HGSC_Fig1b_make_comut <- function(){
     mutate(gene = "TP53") %>%
     select(patients, gene, somatic) %>%
     rename(mutation = somatic)
-  
+  ## brca1/2
   brca <- master %>%
     select(patients, BRCA1_Germline, BRCA2_Germline,
            BRCA1_Somatic, BRCA2_Somatic) %>%
@@ -182,12 +197,12 @@ HGSC_Fig1b_make_comut <- function(){
                   mutate(gene = "BRCA1/2")) %>%
     select(patients, gene, mutation)
   
-  # combine mutations
+  ## combine mutations
   df_mut <- rbind(brca, tp53 %>% filter(!is.na(mutation)))
   write.table(df_mut, paste0(outdir, "CoMut_Muts.tsv"),
               sep = "\t", row.names = F, quote = F)
   
-  # TEMPUS
+  # load tempus data to show which pts have tumor mutational burden data
   df_tmp <- data.frame(patients = unique(master$patients),
                        field = rep("Tempus xT",
                                    length(unique(master$patients))),
@@ -204,7 +219,7 @@ HGSC_Fig1b_make_comut <- function(){
   write.table(df_tmp, paste0(outdir,"CoMut_Tempus.tsv"),
               sep = "\t", row.names = F, quote = F)
   
-  # ST
+  # spatial transcriptomics data summarization
   df_st <- master %>%
     select(patients, dataset, sites_binary) %>%
     arrange(dataset) %>%
@@ -221,7 +236,19 @@ HGSC_Fig1b_make_comut <- function(){
   return(master)
 }
 
+#' Figure 1c. Cell Type UMAPs 
+#'
+#' This function loads Seurat Objects that store the UMAP embeddings for high-
+#' confidence cells for each of the Discovery, Validation 1, and Validation 2
+#' datasets. The function loads list objects with the UMAP embedding info for 
+#' the Test 1 and Test 2 datasets. Finally this function plots the UMAP
+#' embeddings for each dataset where the cells are colored by their assigned 
+#' cell types. 
+#'
+#' @return this function returns nothing, but writes figures in .pdf format 
+#' in the Figures/ folder. 
 HGSC_Fig1c_celltype_umaps <- function(cell_2_rgb){
+  # load data and results 
   r <- readRDS(get.file("Data/SMI_data.rds"))
   so_smi <- readRDS(get.file("Results/HGSC_SMI_wUMAP.rds"))
   so_iss <- readRDS(get.file("Results/HGSC_ISS_wUMAP.rds"))
@@ -229,7 +256,9 @@ HGSC_Fig1c_celltype_umaps <- function(cell_2_rgb){
   so_t1 <- readRDS(get.file("Results/HGSC_SMI6K_UMAP_coord.rds"))
   so_t2 <- readRDS(get.file("Results/HGSC_SMIWT_wUMAP.rds"))
   
-  plot_ct_umap <- function(so, cell_2_rgb, title, field = "cell.types.nonmal"){
+  # function for plotting cell type umaps. 
+  plot_ct_umap <- function(so, 
+                           cell_2_rgb, title, field = "cell.types.nonmal"){
     col_field <- names(
       cell_2_rgb
     )[names(cell_2_rgb) %in% unique(r$cell.types)]
@@ -249,9 +278,12 @@ HGSC_Fig1c_celltype_umaps <- function(cell_2_rgb){
     return(p)
   }
   
+  # plot umap for Discovery, Validation 1, Validation 2
   a = plot_ct_umap(so_smi, cell_2_rgb, "Discovery Dataset")
   b = plot_ct_umap(so_iss, cell_2_rgb, "Validation Dataset  1")
   c = plot_ct_umap(so_mer, cell_2_rgb, "Validation Dataset 2")
+  
+  # plot umap for Test 1 and Test 2
   d = ggplot(so_t1, aes(x = umap_1, y = umap_2, col = ct)) + 
     geom_point(size = 0.1) + 
     theme_classic() +
@@ -269,6 +301,7 @@ HGSC_Fig1c_celltype_umaps <- function(cell_2_rgb){
     coord_fixed()
   e = plot_ct_umap(so_t2, cell_2_rgb, "Test 2", field = "cell.types.conf")
   
+  # format legend
   col_field <- names(
     cell_2_rgb
   )[names(cell_2_rgb) %in% unique(r$cell.types)]
@@ -281,12 +314,21 @@ HGSC_Fig1c_celltype_umaps <- function(cell_2_rgb){
     theme(legend.title = element_text(size =12))
   f = as_ggplot(get_legend(p))
   
+  # write to disk 
   pdf(get.file("Figures/Fig1c.pdf"), width = 15, height = 10)
   p <- ggarrange(a,b,c,d,e,f)
   print(p)
   dev.off()
 }
 
+#' Figure 1d. Cell Types plotted in situ. 
+#'
+#' For smaller FOVs of tissue, we use segmentation maps to visualize the cell 
+#' type calls in situ. For the Whole Tissue samples, we use 
+#' 
+#' @param cell_2_rgb a named list of colors assigned to each of the cell types
+#' @return this function returns nothing, but writes figures in .pdf or .png 
+#' format in the Figures/ folder. 
 HGSC_Fig1d_celltypes_insitu<- function(cell_2_rgb){
   # plot 4 samples from the discovery dataset
   r<-readRDS(get.file("Data/SMI_data.rds"))
@@ -306,7 +348,7 @@ HGSC_Fig1d_celltypes_insitu<- function(cell_2_rgb){
                                                            x,
                                                            ".png")))
   })
-  remove(r)
+  remove(r) # for memory efficiency
   
   # plot the select sample from the validation 1 dataset (ISS)
   q<-readRDS(get.file("/Data/Xenium_data.rds"))
@@ -326,7 +368,7 @@ HGSC_Fig1d_celltypes_insitu<- function(cell_2_rgb){
                                outfile = get.file(paste0("Figures/Fig1d_",
                                                          "XEN_T10_", spot,
                                                          ".png")))
-  remove(q)
+  remove(q) # for memory efficiency 
   
   # plot select sample from valifation 2 dataset (MERFISH)
   s <- readRDS(get.file("/Data/MERFISH_data.rds"))
@@ -350,8 +392,11 @@ HGSC_Fig1d_celltypes_insitu<- function(cell_2_rgb){
   
   # plot selected smaples from test 2
   t1 <- readRDS(get.file("Data/SMI6K_Data_wSubtypes.rds"))
-  plot <- filter(data.frame(t1[c("cell.types.conf", "samples", "patients", "sites_binary")], t1$coor))
-  samples = c("SMI6K_2_F00021", "SMI6K_2_F00027", "SMI6K_2_F00019", "SMI6K_2_F00037")
+  plot <- filter(data.frame(t1[c("cell.types.conf", 
+                                 "samples", "patients", 
+                                 "sites_binary")], t1$coor))
+  samples = c("SMI6K_2_F00021", "SMI6K_2_F00027", 
+              "SMI6K_2_F00019", "SMI6K_2_F00037")
   lapply(samples, function(x){
     print(x)
     fov = strsplit(x, split = "_")[[1]][3]
@@ -372,17 +417,18 @@ HGSC_Fig1d_celltypes_insitu<- function(cell_2_rgb){
                                  celltypes = celltypes,
                                  cell2rgb = cell_2_rgb,
                                  samplename = x,
-                                 outfile = get.file(paste0("Figures/Fig1d_",
-                                                           x, "_", 
-                                                           unique(q$patients), 
-                                                           "_", 
-                                                           unique(q$sites_binary), 
-                                                           ".png")))
+                                 outfile = get.file(
+                                   paste0("Figures/Fig1d_",
+                                          x, "_", 
+                                          unique(q$patients), 
+                                          "_", 
+                                          unique(q$sites_binary), 
+                                          ".png")))
   })
-  remove(t1)
+  remove(t1) # for memory efficiency 
   
+  # plot selected sample from test 2
   t2.3 <- readRDS(get.file("Data/WT3_wSubtypes.rds"))
-  # plot selected smaples from test 2
   plot <- filter(data.frame(t2.3[c("cell.types.conf", "labels")], t2.3$coor.global))
   p <- ggplot(plot, aes(x = x_global_px, y = y_global_px, col = cell.types.conf)) +
     geom_point(size = 0.1) +
@@ -396,10 +442,18 @@ HGSC_Fig1d_celltypes_insitu<- function(cell_2_rgb){
           legend.position = "none")
   png(get.file("Figures/Fig1d_WT.png"),
       height = 16, width = 16, units = "in", res = 500)
-  print(p)
+  print(p) 
   dev.off()
 }
 
+#' Figure 1e. Coembedding Validation with scRNA-seq
+#'
+#' For smaller FOVs of tissue, we use segmentation maps to visualize the cell 
+#' type calls in situ. For the Whole Tissue samples, we use 
+#' 
+#' @param cell_2_rgb a named list of colors assigned to each of the cell types
+#' @return this function returns nothing, but writes figures in .pdf or .png 
+#' format in the Figures/ folder. 
 HGSC_Fig1e_coembedding <- function(cell_2_rgb){
   c1<- readRDS(get.file("Results/HGSC_coembedding.rds"))
   c2 <- readRDS(get.file("Results/HGSC_coembeddingTest.rds"))
@@ -450,6 +504,14 @@ HGSC_Fig1e_coembedding <- function(cell_2_rgb){
   dev.off()
 }
 
+#' Figure 1f. Coembedding Validation with scRNA-seq
+#'
+#' For smaller FOVs of tissue, we use segmentation maps to visualize the cell 
+#' type calls in situ. For the Whole Tissue samples, we use 
+#' 
+#' @param cell_2_rgb a named list of colors assigned to each of the cell types
+#' @return this function returns nothing, but writes figures in .pdf or .png 
+#' format in the Figures/ folder. 
 HGSC_Fig1f_celltype_composition <- function(cell_2_rgb,
                                             ct = c("Malignant", "Fibroblast",
                                                    "Endothelial", "Monocyte",
@@ -461,7 +523,9 @@ HGSC_Fig1f_celltype_composition <- function(cell_2_rgb,
       meta <- (filter(out, samples == s) %>%
                  select(-cells, -cell.types))[1:(length(ct)),] %>%
         cbind.data.frame(cell.types = ct) %>%
-        cbind.data.frame(count =  unlist(unname(as.list(table(filter(out, samples == s)$cell.types))))) %>%
+        cbind.data.frame(count =  unlist(
+          unname(
+            as.list(table(filter(out, samples == s)$cell.types))))) %>%
         mutate(proportion = count/(dim(filter(out, samples == s))[1]) )
       row.names(meta) <- NULL
       return(meta)
@@ -565,7 +629,8 @@ HGSC_Fig1f_celltype_composition <- function(cell_2_rgb,
       width = 18, height = 3)
   p <- ggplot(full, aes(x = samples, y = proportion, fill = cell.types)) +
     geom_bar(stat = "identity") +
-    facet_grid(~dataset, scales = "free_x", space = "free", labeller = as_labeller(labels)) +
+    facet_grid(~dataset, scales = "free_x", space = "free", 
+               labeller = as_labeller(labels)) +
     scale_fill_manual(values = lapply(cell_2_rgb, rgb2hex)) +
     theme(axis.text.x = element_blank(),
           strip.text = element_text(color = "lightgrey"))
@@ -584,7 +649,8 @@ HGSC_Fig1f_celltype_composition <- function(cell_2_rgb,
     group_by(samples) %>% summarize(n = length(cell.types.conf))
   t1nct = bind_rows(lapply(unique(t1ncells$samples), function(s){
     dff = filter(dfraw, samples == s)
-    dff = dff %>% mutate(cell.types = factor(cell.types.conf, levels = names(cell_2_rgb)))
+    dff = dff %>% mutate(cell.types = factor(cell.types.conf, 
+                                             levels = names(cell_2_rgb)))
     c(samples = s, table(dff$cell.types))
   }))
   short = merge(t1nct, t1ncells, by = "samples", all.x = T) 
@@ -594,7 +660,8 @@ HGSC_Fig1f_celltype_composition <- function(cell_2_rgb,
   colnames(short1) = colnames(short)[2:9]
   dfshort = data.frame(samples = short$samples, short1)
   dflong = dfshort %>% gather(key = cell.types, 
-                              value = proportion, -samples) %>% mutate(dataset = "Test 1")
+                              value = proportion, -samples) %>% 
+    mutate(dataset = "Test 1")
   remove(t1)
   
   # extract from test 2 
@@ -603,31 +670,36 @@ HGSC_Fig1f_celltype_composition <- function(cell_2_rgb,
   t2.3 <- readRDS(get.file("Data/WT3_wSubtypes.rds"))
   t2.4 <- readRDS(get.file("Data/WT4_wSubtypes.rds"))
   df1short = bind_rows(lapply(list(t2.1, t2.2, t2.3, t2.4), function(s){
-    c(samples = unique(s$patients), table(s$cell.types.conf)/length(s$cell.types.conf))
+    c(samples = unique(s$patients), 
+      table(s$cell.types.conf)/length(s$cell.types.conf))
   }))
-  df1long = df1short %>% gather(key = cell.types, value = proportion, -samples) %>% mutate(dataset = "Test 2")
+  df1long = df1short %>% 
+    gather(key = cell.types, value = proportion, -samples) %>% 
+    mutate(dataset = "Test 2")
   
   # combine test 1 and test 2 
   dfpatch = rbind(dflong, df1long)
   dfpatch <- dfpatch %>% mutate(dataset = factor(dataset,
-                                           levels = c("Test 1", "Test 2"))) %>%
+                                                 levels = c("Test 1", 
+                                                            "Test 2"))) %>%
     mutate(proportion = as.numeric(proportion))
   order <- (dfpatch %>% filter(
     cell.types == "Malignant") %>% arrange(proportion))$samples
   
   full = dfpatch %>% mutate(samples = factor(samples, levels = order),
-                          cell.types = factor(
-                            cell.types,
-                            levels = c("Malignant", "Fibroblast",
-                                       "Endothelial","Monocyte",
-                                       "Mast.cell", "TNK.cell",
-                                       "B.cell", "Other")))
+                            cell.types = factor(
+                              cell.types,
+                              levels = c("Malignant", "Fibroblast",
+                                         "Endothelial","Monocyte",
+                                         "Mast.cell", "TNK.cell",
+                                         "B.cell", "Other")))
   # make plots 
   pdf(get.file("Figures/Fig1f-p.pdf"),
       width = 4, height = 3)
   p <- ggplot(full, aes(x = samples, y = proportion, fill = cell.types)) +
     geom_bar(stat = "identity") +
-    facet_grid(~dataset, scales = "free_x", space = "free", labeller = as_labeller(labels)) +
+    facet_grid(~dataset, scales = "free_x", space = "free", 
+               labeller = as_labeller(labels)) +
     scale_fill_manual(values = lapply(cell_2_rgb, rgb2hex)) +
     theme(axis.text.x = element_blank(),
           strip.text = element_text(color = "lightgrey"))
@@ -635,20 +707,29 @@ HGSC_Fig1f_celltype_composition <- function(cell_2_rgb,
   dev.off()
 }
 
+#' Figure 1g. Hypergeometric Tests for Spatial Data
+#'
+#' For the Discovery dataset, we perform hypergeometric tests to evaluate if 
+#' cell types co-occur in spatial frames more often than expected by random. 
+#' 
+#' @param cell_2_rgb a named list of colors assigned to each of the cell types
+#' @return this function returns nothing, but writes figures in .pdf format. 
 HGSC_Fig1g_hg <- function(cell_2_rgb){
+  # divide samples into grids
   r <-readRDS(get.file("Data/SMI_data.rds"))
   r1<-get.frames(r,n1=300) 
   row.names(r1$frames.metadata) <- r1$frames.metadata$Frame
   
-  # clean up tme the data 
+  # clean up the neighborhood cell type counts
   r1$frames.metadata<-as.data.frame(table(r1$frames))
   colnames(r1$frames.metadata)<-c("Frame","No_cells")
   row.names(r1$frames.metadata) <- r1$frames.metadata$Frame
-  r1$frames.metadata$samples <- unlist(lapply(r1$frames.metadata$Frame, 
-                                              function(x){
-                                                paste(strsplit(as.character(x), 
-                                                               split = "_")[[1]][1:3], 
-                                                      collapse = "_")}))
+  r1$frames.metadata$samples <- unlist(
+    lapply(r1$frames.metadata$Frame, 
+           function(x){
+             paste(strsplit(as.character(x), 
+                            split = "_")[[1]][1:3], 
+                   collapse = "_")}))
   r1$cell.types.all <- gsub("_LC", "", r1$cell.types)
   df <- data.frame(r1[c("frames", "cell.types.all")])
   df <- df %>% 
@@ -699,9 +780,19 @@ HGSC_Fig1g_hg <- function(cell_2_rgb){
   dev.off()
 }
 
+#' Figure 1h. Co-localization Quotient 
+#'
+#' For the Discovery dataset, we calculate co-localization quotient (CLQ, 
+#' Methods) between fibroblasts and T/NK cells and malignant cells and T/NK 
+#' cells to explore the relationship of infiltration in the two predominant 
+#' spatial components of the tumor tissue. 
+#' 
+#' @param cell_2_rgb a named list of colors assigned to each of the cell types
+#' @return this function returns nothing, but writes figures in .pdf format.
 HGSC_Fig1h_clq <- function(cell_2_rgb){
   r <-readRDS(get.file("Data/SMI_data.rds"))
-  # Compute Colocalization Quotient
+  
+  # compute co-localization quotient
   clq <- function(a, b, rs, field) {
     C_b_a <- sum(rs$neighbors[rs[[field]] == a,b], na.rm = T)
     N_a <- sum(rs[[field]] == a, na.rm = T)
@@ -741,7 +832,8 @@ HGSC_Fig1h_clq <- function(cell_2_rgb){
     clq_df <- clq_df[complete.cases(clq_df),] %>%
       mutate(Fibroblast = log2(CLQ_Fib_TNK)) %>%
       mutate(Malignant = log2(CLQ_Mal_TNK))
-    clq_df <- clq_df[is.finite(clq_df$Fibroblast) & is.finite(clq_df$Malignant),]
+    clq_df <- clq_df[is.finite(clq_df$Fibroblast) &
+                       is.finite(clq_df$Malignant),]
     plt <-  dplyr::select(clq_df, -CLQ_Fib_TNK, -CLQ_Mal_TNK) %>%
       gather(pair, clq, -patients, -sites_binary, -samples)
     

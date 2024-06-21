@@ -51,7 +51,6 @@ HGSC_Figure2_TIP_DF<-function(r1.smi,r.xenium,r1.xenium,R,
   #9 Regenerate Figure 2g: Make L-R table 
   print("Fig 2g")
   # HGSC_Fig2g_LR()
-
   return()
 }
 

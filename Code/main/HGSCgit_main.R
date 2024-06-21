@@ -69,7 +69,7 @@ HGSC_main<-function(){
 }
 
 get.file<-function(file1){
-  dir1 <- "~/Projects/HGSC_SpatialPerturbational/"
+  dir1 <- "/path/to/your/local/clone/of/this/repo/"
   return(paste0(dir1,file1))
 }
 

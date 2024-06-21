@@ -7,7 +7,7 @@ This resource provides the code developed in the study of Yeh, Aguirre, Laveroni
 The raw and processed data will be provided on the Gene Expression Omnibus and Zenodo **when the study is officially published**. The data will also be available for download and interactive exploration on the Single Cell Portal.
 
 ## **Quick start**
-Follow the steps below to reproduce the figures and tables in Yeh, Aguirre, Laveroni _et al.: 
+Follow the steps below to reproduce the figures and tables in Yeh, Aguirre, Laveroni _et al._: 
 
 1. Clone this repository by executing `git clone https://github.com/Jerby-Lab/HGSC_SpatialPerturbational/`. 
 

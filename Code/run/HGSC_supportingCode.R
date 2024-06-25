@@ -1374,3 +1374,26 @@ get.onesided.p.value <- function(c,p){
   p.one.side[b]=1-(p[b]/2)
   return(p.one.side)
 }
+
+plot.multi.ROCs<-function(P,Y,b,main = ""){
+  p1<-plot.auc(P[[1]],Y[[1]],plot.flag = F,subplotF = F)
+  p2<-plot.auc(P[[2]],Y[[2]],plot.flag = F,subplotF = F)
+  p3<-plot.auc(P[[3]],Y[[3]],plot.flag = F,subplotF = F)
+  a<-c(get.auc(P[[1]],Y[[1]]),
+       get.auc(P[[2]],Y[[2]]),
+       get.auc(P[[3]],Y[[3]]))
+  a<-round(a,2)
+  plot(p1,ylim = c(0,1),main = main)
+  plot(p2,ylim = c(0,1),col = "red",add = T)
+  plot(p3,ylim = c(0,1),col = "blue",add = T)
+  abline(a = 0,b = 1,col = "gray30")
+  legend(x = 0.4,y = 0.3,col = c("black","red","blue"),
+         legend = paste0(names(P)," (AUC = ",a,")"),lty = 1,lwd = 3,
+         cex = 0.8)
+}
+
+scores.2.colors<-function(x.class){
+  palette("default")
+  call_col<-plotrix::color.scale(x.class,c(0,10),0.8,0.8,color.spec = "hsv")
+  return(call_col)
+}

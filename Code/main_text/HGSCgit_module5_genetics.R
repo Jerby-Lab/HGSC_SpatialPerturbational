@@ -17,6 +17,15 @@
 #' All other figures were produced outside of R. Source Data for 5f and 5h are
 #' available with the published manuscript.  
 #'
+#' @param r r list object that contains data for the Discovery dataset
+#' @param r1 r1 list object that contains data for the malginant component of 
+#' the Discovery dataset 
+#' @param rslts1 list object containing quantitative results of mixed effects
+#' models connecting gene expression of MTIL with copy number alterations in the
+#' Discovery dataset 
+#' @param rslts2 list object containing quantitative results of mixed effects
+#' models connecting gene expression of MTIL with copy number alterations in
+#' TCGA data. 
 #' @return this function returns nothing, but writes figures in .pdf format 
 #' in the Figures/ folder. 
 HGSC_Figure5_CNAs<-function(r,r1,rslts1,rslts2){

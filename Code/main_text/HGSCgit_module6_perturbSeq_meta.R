@@ -10,6 +10,10 @@
 #'
 #' This function calls code to reproduce main text Figures 6a-d.  
 #'
+#' @param rslts results of MTIL mixed effects modeling 
+#' @param rslts1 results from mapping MTIL to K562 CRISPRa data 
+#' @param rslts2 results from mapping MTIL to K562 CRISPRi data
+#' @param rslts3 results from mapping MTIL to RPE1 CRISPRi data
 #' @return this function returns nothing, but writes figures in .pdf format 
 #' in the Figures/ folder. 
 HGSC_Figure6_perturbMeta<-function(rslts,rslts1,rslts2,rslts3){

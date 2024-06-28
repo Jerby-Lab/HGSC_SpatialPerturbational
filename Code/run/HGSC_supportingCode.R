@@ -15,7 +15,7 @@ umap.ggplot<-function(umapX,labels,labels.name = "",main = "",size = 0.2,xlim1,
     labels<-labels[idx]
     umapX<-umapX[idx,]
   }
-
+  
   xylabs <- colnames(umapX)
   colnames(umapX)<-c("UMAP1","UMAP2")
   X <- cbind.data.frame(umapX,col = labels)
@@ -28,14 +28,14 @@ umap.ggplot<-function(umapX,labels,labels.name = "",main = "",size = 0.2,xlim1,
     xlim(xlim1)
     ylim(ylim1)
   }
-
+  
   if(!is.numeric(labels)){
     if(remove.legend){p<-p+theme(legend.position = "none")}
     return(p)
   }
   p<-p+scale_color_gradient2(midpoint=mean(labels),
                              low="blue", mid="gray",high="red", space ="Lab")
-
+  
   if(remove.legend){
     p<-p+theme(legend.position = "none")
   }
@@ -53,12 +53,12 @@ call.multiplot<-function(plotlist,nplots = 4,cols = 2){
 
 multiplot<-function(..., plotlist=NULL, file, cols=1, layout=NULL){
   library(grid)
-
+  
   # Make a list from the ... arguments and plotlist
   plots <- c(list(...), plotlist)
-
+  
   numPlots = length(plots)
-
+  
   # If layout is NULL, then use 'cols' to determine layout
   if (is.null(layout)) {
     # Make the panel
@@ -67,20 +67,20 @@ multiplot<-function(..., plotlist=NULL, file, cols=1, layout=NULL){
     layout <- matrix(seq(1, cols * ceiling(numPlots/cols)),
                      ncol = cols, nrow = ceiling(numPlots/cols))
   }
-
+  
   if (numPlots==1) {
     print(plots[[1]])
-
+    
   } else {
     # Set up the page
     grid.newpage()
     pushViewport(viewport(layout = grid.layout(nrow(layout), ncol(layout))))
-
+    
     # Make each plot, in the correct location
     for (i in 1:numPlots) {
       # Get the i,j matrix positions of the regions that contain this subplot
       matchidx <- as.data.frame(which(layout == i, arr.ind = TRUE))
-
+      
       print(plots[[i]], vp = viewport(layout.pos.row = matchidx$row,
                                       layout.pos.col = matchidx$col))
     }
@@ -113,7 +113,7 @@ discretize.3.labels<-function(X,q = 0.1,verbose = F){
     print(paste("Low quantile<=",q))
     print(paste("High quantile>=",1-q))
   }
-
+  
   f<-function(v){
     b.low<-v<=quantile(v,q,na.rm = T)
     b.high<-v>=quantile(v,1-q,na.rm = T)
@@ -128,10 +128,25 @@ discretize.3.labels<-function(X,q = 0.1,verbose = F){
   return(B)
 }
 
-call.plot.plus<-function(x, y = NULL,labels,b.top,red.top = F,regression.flag = F,my.col = NULL,set.flag = F,cor.flag = F,
-                         pch=16,cex=0.3,main="",ylab = "tSNE2",xlab = "tSNE1", cex.axis = 0.6,
-                         add.N = F,grey.zeros = F,legend.flag = T){
-
+call.plot.plus<-function(x, 
+                         y = NULL,
+                         labels,
+                         b.top
+                         ,red.top = F,
+                         regression.flag = F,
+                         my.col = NULL,
+                         set.flag = F,
+                         cor.flag = F,
+                         pch=16,
+                         cex=0.3,
+                         main="",
+                         ylab = "tSNE2",
+                         xlab = "tSNE1", 
+                         cex.axis = 0.6,
+                         add.N = F,
+                         grey.zeros = F,
+                         legend.flag = T){
+  
   regl<-call.plot(x = x,y = y,labels,regression.flag,my.col = my.col,
                   set.flag = set.flag,cor.flag = cor.flag,
                   pch = pch,cex = cex,main = main,ylab = ylab,xlab = xlab,
@@ -157,11 +172,13 @@ call.plot.plus<-function(x, y = NULL,labels,b.top,red.top = F,regression.flag = 
     points(x[b.top],y[b.top],cex = cex,col = my.col[b.top],pch = 16)
   }
   return(regl)
-
+  
 }
 
-call.plot<-function(x, y = NULL,labels,regression.flag = F,my.col = NULL,set.flag = F,cor.flag = F,legend.flag = T,
-                    pch=16,cex=0.5,main="",ylab = "UMAP2",xlab = "UMAP1", cex.axis = 0.6,add.N = F,cex.main = 1,
+call.plot<-function(x, y = NULL,labels,regression.flag = F,my.col = NULL,
+                    set.flag = F,cor.flag = F,legend.flag = T,
+                    pch=16,cex=0.5,main="",ylab = "UMAP2",xlab = "UMAP1", 
+                    cex.axis = 0.6,add.N = F,cex.main = 1,
                     color.spec = "rgb"){
   main<-capitalize(main)
   if(add.N&length(unique(labels))<30){
@@ -178,13 +195,13 @@ call.plot<-function(x, y = NULL,labels,regression.flag = F,my.col = NULL,set.fla
     if(missing(ylab)){ylab<-colnames(x)[2]}
     y<-x[,2];x<-x[,1]
   }
-
+  
   if(cor.flag){
     xy.cor<-spearman.cor(y,x)
     main <- paste(main, "\nR =",format(xy.cor[1],digits = 2),"P =",format(xy.cor[2],scientific = T,digits = 2))
   }
   plot(x,y,col=my.col,pch=pch,cex=cex,main=main,ylab=ylab,xlab = xlab,cex.axis = cex.axis,cex.main = cex.main)
-
+  
   labels<-gsub(" ","_",labels)
   l<-(max(x,na.rm = T)-min(x,na.rm = T))/20
   if(length(unique(labels))<30&legend.flag){
@@ -208,7 +225,7 @@ call.plot<-function(x, y = NULL,labels,regression.flag = F,my.col = NULL,set.fla
              col = get.strsplit(map,' ',2),xpd = T,
              bty = "n",lty= NA, lwd = 0,cex = 0.7,pch = pch)
     }
-
+    
   }
   if(regression.flag ==1){
     b<-!is.na(x)&!is.na(y)
@@ -224,16 +241,17 @@ call.plot<-function(x, y = NULL,labels,regression.flag = F,my.col = NULL,set.fla
       v<-lowess(x[bi],y[bi])
       lines(v)
     }
-
+    
   }
-
-
+  
+  
 }
 
 call.boxplot<-function (y,x,unique.x, f = median,
                         ylab = '',xlab = '',main = '',labels=NULL,
                         legend.name = "",add.anova = F,blank.flag = T,
-                        cex = 0.7,order.flag = T,b.ref = NULL,p.val.show = is.null(b.ref)){
+                        cex = 0.7,order.flag = T,b.ref = NULL,
+                        p.val.show = is.null(b.ref)){
   b<-is.infinite(y)|is.na(y)
   if(length(labels)==length(x)){
     labels<-labels[!b]
@@ -252,7 +270,7 @@ call.boxplot<-function (y,x,unique.x, f = median,
     main <- paste0(main,"\n(",my.format.pval(t.test.labels(y,b.ref,alternative = "greater")),", ",
                    "AUC = ",round(get.auc(y,b.ref),2),")")
   }
-
+  
   if(missing(unique.x)){
     unique.x<-unique(x)
     x.med<-apply(as.matrix(unique.x),1,function(xi) f(y[is.element(x,xi)]))
@@ -262,7 +280,7 @@ call.boxplot<-function (y,x,unique.x, f = median,
     }
     #labels<-labels[unique.x]
   }
-
+  
   #idx<-order(y.med[y])
   x <- data.frame(name = x, val = y)
   x$name <- factor(x$name, levels = unique.x)
@@ -282,7 +300,8 @@ call.boxplot<-function (y,x,unique.x, f = median,
   #labs(title = paste(screen.name,'ANOVA p-value = ',p.anova)) +
 }
 
-get.top.cor<-function(m,q = 100,min.ci = 0,idx = NULL, add.prefix ="",sort.flag = T){
+get.top.cor<-function(m,q = 100,min.ci = 0,idx = NULL,
+                      add.prefix ="",sort.flag = T){
   m<-as.matrix(m)
   if(is.null(colnames(m))){colnames(m)<-1:ncol(m)}
   m.pos<-(-m);m.neg<-m
@@ -297,7 +316,8 @@ get.top.cor<-function(m,q = 100,min.ci = 0,idx = NULL, add.prefix ="",sort.flag 
   return(v)
 }
 
-get.top.elements<-function(m,q = 100,min.ci = NULL,main = "",sort.flag = T){
+get.top.elements<-function(m,q = 100,min.ci = NULL,
+                           main = "",sort.flag = T){
   top.l<-list()
   v<-rownames(m)
   for (i in 1:ncol(m)){
@@ -312,7 +332,7 @@ get.top.elements<-function(m,q = 100,min.ci = NULL,main = "",sort.flag = T){
     }else{
       top.l[[i]]<-v[b][order(m[b,i])]
     }
-
+    
   }
   if(main!=""){main<-paste0(main,".")}
   names(top.l)<-paste0(main,colnames(m))
@@ -344,7 +364,7 @@ union.lists<-function(l1,l2,unique.flag = T,disregard.names = F){
   }else{
     L<-lapply(names(l1), function(x) c(l1[[x]],l2[[x]]))
   }
-
+  
   names(L)<-names(l1)
   return(L)
 }
@@ -400,7 +420,7 @@ t.test.mat<-function(m,b,two.sided=F,rankf = F,fold.changeF = F,BH.flag = F){
     p$BH.more<-p.adjust(p$more,method = "BH")
     p$BH.less<-p.adjust(p$less,method = "BH")
   }
-
+  
   return(p)
 }
 
@@ -416,7 +436,8 @@ t.test.groups<-function(x,b,g,min.n = 1,combine.n){
     v[,i]<-t.test.mat(x[,b.g],b[b.g])[,3]
   }
   if(!missing(combine.n)){
-    v<-cbind.data.frame(Z.up = rowSums(v>combine.n),Z.down = rowSums(v<(-combine.n)),
+    v<-cbind.data.frame(Z.up = rowSums(v>combine.n),
+                        Z.down = rowSums(v<(-combine.n)),
                         P.up = fisher.combine(get.pval.from.zscores(v)),
                         P.down = fisher.combine(get.pval.from.zscores(v)),v)
   }
@@ -471,7 +492,8 @@ spearman.cor<-function(v1,v2 = NULL,method = 'spearman',
     if(is.null(colnames(v1))){colnames(v1)<-1:ncol(v1)}
     results<-get.mat(m.cols = c("R","P"),m.rows = colnames(v1))
     for(i in 1:ncol(v1)){
-      c.i <- cor.test(v1[,i],v2[,i],method = method,use = use, alternative = alternative)
+      c.i <- cor.test(v1[,i],v2[,i],method = method,
+                      use = use, alternative = alternative)
       results[i,1] <- c.i$estimate
       results[i,2] <- c.i$p.value
     }
@@ -483,7 +505,8 @@ spearman.cor<-function(v1,v2 = NULL,method = 'spearman',
     results<-list(cor = m, p = m)
     for(i in 1:n1){
       f<-function(x){
-        c.i<-cor.test(v1[,i],x,method = method,use = use, alternative = alternative);
+        c.i<-cor.test(v1[,i],x,method = method,
+                      use = use, alternative = alternative);
         c(c.i$estimate,c.i$p.value)}
       c.i <- apply(v2,2,f)
       results$cor[i,] <- c.i[1,]
@@ -501,7 +524,8 @@ spearman.cor<-function(v1,v2 = NULL,method = 'spearman',
   return(results)
 }
 
-call.heatmap<-function(m,main = '',col.labels = NULL,row.labels = NULL,k = 3,filter.na = T,
+call.heatmap<-function(m,main = '',col.labels = NULL,
+                       row.labels = NULL,k = 3,filter.na = T,
                        cexCol = ifelse(ncol(m)>70,0.00001,1),
                        cexRow = ifelse(nrow(m)>70,0.00001,1),
                        m.value = '',scale = "none",
@@ -516,7 +540,7 @@ call.heatmap<-function(m,main = '',col.labels = NULL,row.labels = NULL,k = 3,fil
     m<-m[,b.col]
     if(!is.null(col.labels)){col.labels<-subset(col.labels,b.col)}
   }
-
+  
   if(cluster.flag!="none"){
     if(method =="cor"){
       hc <- hclust(as.dist(2-cor(m)), method="complete");
@@ -531,16 +555,17 @@ call.heatmap<-function(m,main = '',col.labels = NULL,row.labels = NULL,k = 3,fil
     Rowv <- as.dendrogram(hr)
     Colv <- as.dendrogram(hc)
     if(!is.null(col.labels)){
-      col.labels<-cbind.data.frame(col.labels,clusters = paste0("C",cutree(hc, k = k)))
+      col.labels<-cbind.data.frame(col.labels,
+                                   clusters = paste0("C",cutree(hc, k = k)))
     }else{
       col.labels<-cbind.data.frame(clusters = paste0("C",cutree(hc, k = k)))
     }
-
+    
   }else{
     Rowv <- NA;Colv <- NA
     hc<-T;hr<-T
   }
-
+  
   col.col <- NULL
   if(!is.null(col.labels)){
     col.labels<-as.data.frame(col.labels)
@@ -549,12 +574,14 @@ call.heatmap<-function(m,main = '',col.labels = NULL,row.labels = NULL,k = 3,fil
   }
   if(!is.null(row.labels)&is.null(row.col)){
     row.labels<-as.data.frame(row.labels)
-    row.col<-t(as.matrix(t(laply(1:ncol(row.labels),function(i) return(labels.2.colors(row.labels[,i]))))))
+    row.col<-t(
+      as.matrix(t(laply(1:ncol(row.labels),
+                        function(i) return(labels.2.colors(row.labels[,i]))))))
     if(ncol(row.labels)==1){row.col<-t(row.col)}
     row.labels<-t(as.matrix(row.labels))
     rownames(row.col)<-rownames(row.labels)
   }
-
+  
   myheatcol <- redblue(50)
   myheatcol <- c(rep(myheatcol[1],10),myheatcol,rep(myheatcol[length(myheatcol)],10))
   myheatcol<-myheatcol[seq(length(myheatcol),1,-1)]
@@ -568,13 +595,13 @@ call.heatmap<-function(m,main = '',col.labels = NULL,row.labels = NULL,k = 3,fil
   if(!is.null(row.labels)&&identical(col.labels,t(row.labels))){
     row.labels<-NULL
   }
-
+  
   if(!is.null(col.labels)){
     coltitles<-colnames(col.labels)[1]
     col.col<-as.matrix(col.col[,!duplicated(t(col.labels))])
     col.labels<-as.matrix(col.labels[,!duplicated(t(col.labels))])
     n1<-ifelse(is.matrix(col.labels),ncol(col.labels),1)
-
+    
     for(i in 1:n1){
       v<-unique(paste(col.col[,i],col.labels[,i],sep = "?"))
       legend(legend.place[i],legend = get.strsplit(v,"?",2),col=get.strsplit(v,"?",1),
@@ -628,9 +655,11 @@ plot.heatmap<-function(m,main,Rowv,Colv,m.value,cexRow,cexCol,
 
 labels.2.colors<-function(x.class,x = NULL,number.flag = F,color.spec = "hsv"){
   palette("default")
-  call_col<-c("black","red","cadetblue","gray","darkgreen","darkorange","darkviolet","gold3",
-              "lightpink","deeppink2","deepskyblue",palette(),rainbow(20))
-
+  call_col<-c("black","red","cadetblue","gray",
+              "darkgreen","darkorange","darkviolet","gold3",
+              "lightpink","deeppink2","deepskyblue",
+              palette(),rainbow(20))
+  
   no.classes<-length(unique(x.class))
   if(number.flag){
     call_col<-match(x.class,sort(unique(x.class)))
@@ -691,13 +720,17 @@ call.format.pval<-function(p,prnt.flag = F,d = "="){
   return(p)
 }
 
-violin.split<-function(scores, treatment, conditions, main = "",xlab = "Sample",ylab = "Scores",legend.flag = T,
+violin.split<-function(scores, treatment, conditions, main = "",
+                       xlab = "Sample",ylab = "Scores",legend.flag = T,
                        show.pval = F,col1 = "lightblue",cex.axis = 1){
   # require(beanplot)
   if(length(unique(conditions))==1){
-    p<-t.test.mat(m = rbind(scores,scores),b = treatment == sort(treatment,decreasing = T)[1])[1,1]
+    p<-t.test.mat(m = rbind(scores,scores),
+                  b = treatment == sort(treatment,decreasing = T)[1])[1,1]
   }else{
-    p<-t.test.groups(x = rbind(scores,scores),b = treatment == sort(treatment,decreasing = T)[1],g = conditions)[1,]
+    p<-t.test.groups(x = rbind(scores,scores),
+                     b = treatment == sort(treatment,decreasing = T)[1],
+                     g = conditions)[1,]
     p<-p[sort(names(p))]
   }
   print(p)
@@ -735,16 +768,16 @@ get.abundant<-function(v,abn.c = 2,boolean.flag = F,top,decreasing = T){
 `%!in%` <- Negate(`%in%`)
 
 transfer_data_list_to_so <- function(r,
-                                       so,
-                                       transfer_list = c("coor",
-                                                         "samples",
-                                                         "TMAs",
-                                                         "patients",
-                                                         "samples",
-                                                         "sites",
-                                                         "treatment",
-                                                         "cell.types",
-                                                         "cell.types2"))
+                                     so,
+                                     transfer_list = c("coor",
+                                                       "samples",
+                                                       "TMAs",
+                                                       "patients",
+                                                       "samples",
+                                                       "sites",
+                                                       "treatment",
+                                                       "cell.types",
+                                                       "cell.types2"))
 {
   for (field in transfer_list) {
     if (is.null(dim(r[[field]]))) {
@@ -1025,7 +1058,7 @@ spatial_sample_visualization <- function (seg_path,
                                               3]
     cellmask[, , 3] <- celltype_rgb_3
   }
-
+  
   EBImage::writeImage(cellmask, files = outfile)
 }
 
@@ -1074,18 +1107,18 @@ scRNA_denovo.cell.type.markers<-function(r,n.non.mal,q.dr = 0.2){
                         n.non.T = rowSums(Z[,!b.tcell]>0.2,na.rm = T),Z)
     return(Z)
   }
-
+  
   r$b.mal<-r$cell.types=="Malignant"
   b<-!r$b.mal|is.element(r$samples,get.abundant(r$samples[r$b.mal],abn.c = 50))
   b<-b&get.abundant(r$cell.types,abn.c = 50,boolean.flag = T)
   # print(paste("Removing",sum(!b),"cells."))
   r<-set.list(r,b)
-
+  
   r$cell.types[r$b.mal]<-paste(r$cell.types[r$b.mal],r$patients[r$b.mal],sep = "_")
   cell.types<-unique(r$cell.types)
   gene.av <- t(laply(cell.types,function(x) return(rowMeans(r$tpm[,r$cell.types==x]))))
   gene.dr <- t(laply(cell.types,function(x) return(rowMeans(r$tpm[,r$cell.types==x]>0))))
-
+  
   colnames(gene.av)<-cell.types
   colnames(gene.dr)<-cell.types
   genes<-r$genes
@@ -1094,12 +1127,12 @@ scRNA_denovo.cell.type.markers<-function(r,n.non.mal,q.dr = 0.2){
   sigDR$Malignant<-get.abundant(unlist(sigDR[grepl("Malignant",names(sigDR))]),n.mal)
   # print(summary(sigDR))
   sig<-sigDR
-
+  
   b.mal<-grepl("Malignant",cell.types)
   b.tcell<-is.element(cell.types,c("T.cell","CD4.T","CD8.T"))
   if(missing(n.non.mal)){n.non.mal<-(sum(!b.mal)-1)}
   n.non.T<-sum(!b.tcell)-1
-
+  
   Z1<-lapply(cell.types,get.FC)
   names(Z1)<-cell.types;summary(Z1)
   # Identify genes which are up-regulated in a non-malignant cell type compared
@@ -1110,7 +1143,7 @@ scRNA_denovo.cell.type.markers<-function(r,n.non.mal,q.dr = 0.2){
   sig$Malignant<-get.abundant(unlist(sig[b.mal]),n.mal)
   # print(summary(sig[c("Malignant",cell.types[!b.mal])]))
   sigFC<-sig
-
+  
   Z2<-lapply(cell.types,get.ttest)
   names(Z2)<-cell.types
   sig<-lapply(Z2, function(X){
@@ -1121,7 +1154,7 @@ scRNA_denovo.cell.type.markers<-function(r,n.non.mal,q.dr = 0.2){
   sig$Malignant<-sort(get.abundant(v = unlist(sig[b.mal]),
                                    abn.c = min(sum(b.mal),40),boolean.flag = F))
   # print(summary(sig[c("Malignant",cell.types[!b.mal])]))
-
+  
   sig.strict<-intersect.lists(sigFC,sigDR)
   sig.strict<-intersect.lists(sig,sig.strict)
   sig.strict<-sig.strict[laply(sig.strict,length)>0]
@@ -1302,7 +1335,7 @@ cap_object <- function (X, q)
 }
 
 km.plot3 <- function(r,v,main = '',X = NULL,qua = 0.2,xlim = NULL,direction = 0,
-         legend.flag = T,ylab = "Survival probability",four.levels = F){
+                     legend.flag = T,ylab = "Survival probability",four.levels = F){
   M1<-summary(coxph(r$survival ~ v))$coefficients
   coxD<-M1[1,"coef"]
   cox.p<-M1[1,"Pr(>|z|)"]
@@ -1396,4 +1429,44 @@ scores.2.colors<-function(x.class){
   palette("default")
   call_col<-plotrix::color.scale(x.class,c(0,10),0.8,0.8,color.spec = "hsv")
   return(call_col)
+}
+
+
+create_volcano_plot <- function(x, y,dot_names, zcat = 1.3,
+                                x_label = "X-axis", y_label = "Y-axis",
+                                quadrant_labels = c("Quadrant 1", "Quadrant 2", 
+                                                    "Quadrant 3", "Quadrant 4"),
+                                cex = 1) {
+  # create a data frame
+  df <- data.frame(x, y, dot_names)
+  
+  df$significant <- "No"
+  df$significant[(x > 0 & y > zcat)|(x > zcat & y > 0)] <- "Resistance"
+  df$significant[(x < 0 & y < (-zcat))|x < (-zcat) & y < 0] <- "Response"
+  df$significant[(x < (-zcat) & y > 0)|(x < 0 & y > zcat)] <- "Opposing1"
+  df$significant[(x > 0 & y < (-zcat))|x > zcat & y < 0] <- "Opposing2"
+  
+  
+  # create the plot with four quadrants
+  p <- ggplot(df, aes(x, y)) +
+    geom_point(aes(color = significant), alpha = 0.7, size = 3) +
+    scale_color_manual(values = c("No" = "grey", "Resistance" = "blue", "Response" = "green", "Opposing1" = "orange","Opposing2" = "red"), guide = FALSE) +
+    geom_vline(xintercept = zcat, color = "gray50", linetype = "dashed") +
+    geom_hline(yintercept = zcat, color = "gray50", linetype = "dashed") +
+    geom_vline(xintercept = -zcat, color = "gray50", linetype = "dashed") +
+    geom_hline(yintercept = -zcat, color = "gray50", linetype = "dashed") +
+    theme_minimal() +
+    labs(x = x_label, y = y_label) +
+    annotate("text", x = max(df$x) - 0.1, y = max(df$y) - 0.1, label = quadrant_labels[1], hjust = 1, vjust = 1, color = "blue") +
+    annotate("text", x = min(df$x) + 0.1, y = max(df$y) - 0.1, label = quadrant_labels[2], hjust = 0, vjust = 1, color = "orange") +
+    annotate("text", x = min(df$x) + 0.1, y = min(df$y) + 0.1, label = quadrant_labels[3], hjust = 0, vjust = 0, color = "green") +
+    annotate("text", x = max(df$x) - 0.1, y = min(df$y) + 0.1, label = quadrant_labels[4], hjust = 1, vjust = 0, color = "red") +
+    coord_cartesian(xlim = range(df$x), ylim = range(df$y)) +
+    theme(plot.title = element_text(size = 16, face = "bold"),
+          axis.title = element_text(size = 14),
+          axis.text = element_text(size = 12)) +
+    geom_text_repel(data = subset(df, significant != "No"), aes(label = dot_names), size = cex, box.padding = 0.5)+
+    guides(color = guide_legend(title = "Significance"))
+  return(p)
+  
 }

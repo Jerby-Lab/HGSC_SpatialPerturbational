@@ -3,7 +3,8 @@ libs4HGSC<-c("beanplot","cowplot","Seurat","EBImage","survival","rms","mixtools"
              "plotrix","stats", "Matrix","Rtsne","lmerTest","devtools","gplots","heatmap3","e1071",
              "openxlsx","RColorBrewer","heatmap3","UpSetR", "dplyr", "survminer", "pheatmap",
              "stringr", "pROC", "argparse","tidyr", "usethis", "ggrepel", "Hmisc",
-             "SeuratObject", "parallel", "forestplot", "tibble", "patchwork")
+             "SeuratObject", "parallel", "forestplot", "tibble", "patchwork", "clusterProfiler", 
+             "")
 
 v<-lapply(libs4HGSC,function(x) library(x,character.only = T))
 

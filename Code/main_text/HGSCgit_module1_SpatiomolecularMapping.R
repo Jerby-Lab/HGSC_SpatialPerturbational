@@ -18,30 +18,20 @@
 #' @return this function returns nothing, but writes figures in .pdf format 
 #' in the Figures/ folder. 
 HGSC_Figure1_SpatiomolecularMapping <- function(cell_2_rgb){
-  print("Section1")
-  print("Fig 1a is generated outside of R")
   #1 Regenerate input files for CoMut plot in python
-  print("Fig 1b")
   master <- HGSC_Fig1b_make_comut()
-  #6 Regenerate Figure 1c: Cell Type UMAPs
-  print("Fig 1c")
+  #2 Regenerate Figure 1c: Cell Type UMAPs
   HGSC_Fig1c_celltype_umaps(cell_2_rgb = cell_2_rgb)
-  #9 Regenerate Figure 1d: Cell Types in situ
-  print("Fig 1d")
+  #3 Regenerate Figure 1d: Cell Types in situ
   HGSC_Fig1d_celltypes_insitu(cell_2_rgb=cell_2_rgb)
-  #10 Regenerate Figure 1e: Coembedding scross ST and scRNA-seq datasets
-  print("Fig 1e")
+  #4 Regenerate Figure 1e: Coembedding scross ST and scRNA-seq datasets
   HGSC_Fig1e_coembedding(cell_2_rgb)
-  #11 Regenerate Figure 1f: Cell Type Compositions
-  print("Fig 1f")
+  #5 Regenerate Figure 1f: Cell Type Compositions
   HGSC_Fig1f_celltype_composition(cell_2_rgb = cell_2_rgb)
-  #12 Regenerate Figure 1g
-  print("Fig 1g")
+  #6 Regenerate Figure 1g
   HGSC_Fig1g_hg(cell_2_rgb = cell_2_rgb)
-  #13 Regenerate Figure 1h: Cell Co-localization Quotient Analysis
-  print("Fig 1h")
+  #7 Regenerate Figure 1h: Cell Co-localization Quotient Analysis
   HGSC_Fig1h_clq(cell_2_rgb = cell_2_rgb)
-  
   return()
 }
 
@@ -429,8 +419,10 @@ HGSC_Fig1d_celltypes_insitu<- function(cell_2_rgb){
   
   # plot selected sample from test 2
   t2.3 <- readRDS(get.file("Data/WT3_wSubtypes.rds"))
-  plot <- filter(data.frame(t2.3[c("cell.types.conf", "labels")], t2.3$coor.global))
-  p <- ggplot(plot, aes(x = x_global_px, y = y_global_px, col = cell.types.conf)) +
+  plot <- filter(data.frame(t2.3[c("cell.types.conf", "labels")], 
+                            t2.3$coor.global))
+  p <- ggplot(plot, aes(x = x_global_px, y = y_global_px, 
+                        col = cell.types.conf)) +
     geom_point(size = 0.1) +
     coord_fixed() +
     theme_classic() +
@@ -473,16 +465,18 @@ HGSC_Fig1e_coembedding <- function(cell_2_rgb){
     guides(colour = guide_legend("" , override.aes = list(fill="white",
                                                           size = 2)))
   # dataset figure
-  coembedding$dataset <- factor(coembedding$dataset, levels = c("SMI", "ISS", 
-                                                                "MERFISH",
-                                                                "Test 1", 
-                                                                "Test 2", 
-                                                                "Vazquez-García", "Geistlinger",
-                                                                "Olalekan", "Regner", "Qian",
-                                                                "Shih", "hornburg"))
+  coembedding$dataset <- factor(coembedding$dataset, 
+                                levels = c("SMI", "ISS", 
+                                           "MERFISH",
+                                           "Test 1", 
+                                           "Test 2", 
+                                           "Vazquez-García", "Geistlinger",
+                                           "Olalekan", "Regner", "Qian",
+                                           "Shih", "hornburg"))
   coembedding <- coembedding[sample(1:(dim(coembedding)[1])),]
-  b <- ggplot(coembedding[!is.na(coembedding$cell.types),], aes(x = UMAP_1, y = UMAP_2,
-                                                                col = dataset) ) +
+  b <- ggplot(coembedding[!is.na(coembedding$cell.types),], 
+              aes(x = UMAP_1, y = UMAP_2,
+                  col = dataset) ) +
     geom_point(size = 0.05) +
     scale_color_manual(values = c(RColorBrewer::brewer.pal(9, "Set3")[1:3], 
                                   "#DDE78A", 
@@ -535,25 +529,32 @@ HGSC_Fig1f_celltype_composition <- function(cell_2_rgb,
   
   # compute composition for scRNA
   files = Sys.glob(get.file("Data/scRNA*"))
-  df_sc <- do.call("rbind", mclapply(files, mc.cores = 10,
-                                     function(path){
-                                       print(path)
-                                       start <- Sys.time()
-                                       r <- readRDS(path)
-                                       out <- data.frame(r[
-                                         c("cells", "samples",
-                                           "patients", "sites",
-                                           "sites_binary", "cell.types",
-                                           "platform", "dataset")
-                                       ]) %>%
-                                         mutate(
-                                           cell.types = factor(cell.types,
-                                                               levels = ct)
-                                         )
-                                       out <- compute_composition(r, out, ct)
-                                       return(out)
-                                       print(Sys.time() - start)
-                                     }))
+  if(!file.exists(get.file("Results/scRNA_Shih_r.rds"))){
+    files = Sys.glob(get.file("Data/scRNA*"))
+    f <- function(path){
+      r <- readRDS(path)
+      out <- data.frame(r[
+        c("cells", "samples",
+          "patients", "sites",
+          "sites_binary", "cell.types",
+          "platform", "dataset")
+      ]) %>%
+        mutate(
+          cell.types = factor(cell.types,
+                              levels = ct))
+      out <- compute_composition(r, out, ct)
+      split <- strsplit(path, split = "/")[[1]]
+      l <- length(split)
+      saveRDS(out,
+              paste0(c(split[1:(l-2)], 
+                       "/Results/", split[l]), 
+                     collapse = "/"))
+      return("")
+    }
+    tmp <-  lapply(files, f)
+  }
+  files = Sys.glob(get.file("Results/scRNA*"))
+  df_sc <- do.call("rbind", lapply(files, readRDS))
   
   # composition of discovery dataset (SMI)
   r<-readRDS(get.file("Data/SMI_data.rds"))
@@ -872,6 +873,3 @@ HGSC_Fig1h_clq <- function(cell_2_rgb){
   # plot clq boxplots
   plot_clq_boxplots(clq_df)
 }
-
-
-

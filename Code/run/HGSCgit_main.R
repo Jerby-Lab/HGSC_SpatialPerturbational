@@ -1,6 +1,6 @@
 # The code below provides a step-by-step guide
 # to regenerate the figures of the manuscript
-# in its final version as of September 2023.
+# in its final version as of June 2024. 
 
 # Result Sections
 #1 Data processing and annotations (Figure 1)
@@ -13,7 +13,7 @@
 #8 Validation of Genetic KO's (Figure 8)
 
 HGSC_main<-function(){
-  if(!file.exists(get.file("Figures/Fig10A.pdf"))){HGSC_source()}
+  if(!file.exists(get.file("Figures/Fig8c.pdf"))){HGSC_source()}
 
   #1 Download Presets 
   cell_2_rgb <- readRDS(get.file("Data/Cell_Colors.rds"))
@@ -21,7 +21,7 @@ HGSC_main<-function(){
   #2 Download T/NK and malignant spatial data.
   rTNK.smi<-HGSC_SMI.process.CD8()
   rmal.smi<-HGSC_SMI.process.mal()
-  rTNK.xenium<-HGSC_Xenium.process.CD8.NK(r = r.xenium)
+  rTNK.xenium<-HGSC_Xenium.process.CD8.NK()
 
   #3 Download Tumor Infiltration Programs (TIP).
   R<-TIP_find_all()
@@ -30,7 +30,7 @@ HGSC_main<-function(){
   morph <- readRDS(get.file("Data/StromalMorphology.rds"))
   daf <- readRDS(get.file("Results/HGSC_DAF.rds"))
 
-  #5 Download mTIL program.
+  #5 Download MTIL program.
   rslts<-readRDS(get.file("Results/HGSC_mTIL_Malignant2env_TNK.cell.rds"))
 
   #6 Download Perturb-seq meta-analyses results.
@@ -45,7 +45,7 @@ HGSC_main<-function(){
   fitnessR<-readRDS(get.file("Results/HGSC_CRISPR.rds"))
 
   #8 Regenerate Main Figures
-  # HGSC_Figure1_SpatiomolecularMapping(cell_2_rgb=cell_2_rgb)
+  HGSC_Figure1_SpatiomolecularMapping(cell_2_rgb=cell_2_rgb)
   r.smi<-readRDS(get.file("Data/SMI_data.rds"))
   r.xenium<-readRDS(get.file("/Data/Xenium_data.rds"))
   HGSC_Figure2_TIP_DF(rTNK.smi,
@@ -58,7 +58,7 @@ HGSC_main<-function(){
                     r1 = rmal.smi,
                     rslts = rslts)
   HGSC_Figure4_ICB()
-  HGSC_Figure5_CNAs(r=r.smi)
+  HGSC_Figure5_CNAs(r=r.smi) # got up to here in terms of triaging data
   HGSC_Figure6_perturbMeta(rslts = rslts,rslts1 = rslts1,
                            rslts2 = rslts2,rslts3 = rslts3)
   HGSC_Figure7_perturbOC(r = r.prt,
@@ -77,6 +77,7 @@ HGSC_source<-function(){
   print("Sourcing HGSC_SpatialPerturbational GitHub repository.")
   files <- list.files(get.file("Code"),
                       include.dirs = F,
+                      recursive = T,
                       pattern = ".R",
                       full.names = T)
   lapply(files, source)

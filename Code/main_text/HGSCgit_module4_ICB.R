@@ -130,7 +130,10 @@ ICB_Fig4b <- function() {
   
   for (feat in fu_features) {
     # Identifying necessary columns
-    relevant_columns <- surv[, c(which(colnames(surv) %in% c("patients", "fu_time3", "event")), which(colnames(surv) == feat))]
+    relevant_columns <- surv[, c(which(colnames(surv) %in% c("patients",
+                                                             "fu_time3", 
+                                                             "event")), 
+                                 which(colnames(surv) == feat))]
     colnames(relevant_columns)[4] <- "feat"
     
     # Calculating the 25th, 75th, and additional percentiles for the feature
@@ -224,7 +227,8 @@ ICB_Fig4d <- function() {
   r <- readRDS("Data/Breast_Durv_Pusztai.rds")
   
   # make plotting data frame for the Pusztai et al dataset
-  plt <- data.frame(r[c("pCR", "arm", "HR", "HER2")], r$MTIL, TNK.cell = r$cell.sig[,"TNK.cell"]) 
+  plt <- data.frame(r[c("pCR", "arm", "HR", "HER2")], r$MTIL, 
+                    TNK.cell = r$cell.sig[,"TNK.cell"]) 
   plt <- filter(plt, arm != "control") # HER2- 71 patients 
   plt <- plt %>% 
     mutate(pCR = factor(c("No (n=42)", "Yes (n=29)")[(pCR + 1)]))
@@ -240,7 +244,8 @@ ICB_Fig4d <- function() {
   r <-readRDS("Data/Breast_Pembro_Wolf.rds")
   
   # make plotting data frame for the Wolf et al dataset
-  plt <- data.frame(r[c("pCR", "arm", "HR", "HER2")], r$MTIL, TNK.cell = r$cell.sigs[,"TNK.cell"]) 
+  plt <- data.frame(r[c("pCR", "arm", "HR", "HER2")], r$MTIL,
+                    TNK.cell = r$cell.sigs[,"TNK.cell"]) 
   plt <- filter(plt, arm == "Pembro") # HER2- 71 patients 
   plt <- plt %>% 
     mutate(pCR = factor(c("No (n=38)", "Yes (n=31)")[(pCR + 1)]))

@@ -10,7 +10,7 @@
 # Figure 2d. CD8 T cell states
 # Figure 2e. Heatmap of Desmoplastic Fibroblast Program
 # Figure 2f. Desmoplastic Fibroblast Program in situ (composite with H&E made in Adobe Illustrator)
-# Figure 2g. Spatial L-R Network 
+# Figure 2g. Spatial L-R Network (generated in)
 
 HGSC_Figure2_TIP_DF<-function(r1.smi,r.xenium,r1.xenium,R,
                               r = r.smi,
@@ -21,36 +21,25 @@ HGSC_Figure2_TIP_DF<-function(r1.smi,r.xenium,r1.xenium,R,
     r.xenium<-readRDS(get.file("/Data/Xenium_data.rds"))
     r1.xenium<-HGSC_Xenium.process.CD8.NK(r = r.xenium)
     R<-TIP_find_all()
-    HGSC_Figure3.regenerate_TIP(r1.smi,r.xenium,r1.xenium,R)
+    HGSC_Figure2.regenerate_TIP(r1.smi,r.xenium,r1.xenium,R)
     return()
   }
 
-  print("Section2")
-
   #1 Regenerate Figure 3a: UMAPs of CD8 T cells with TIP scores.
-  print("Fig 2a")
   TIP_Fig2a_umaps(r1 = r1.smi)
   #2 Regenerate Figure 3b: Dot-plot showing CD8 T cell TIP genes association with infiltration in different immune subsets.
-  print("Fig 2b")
   TIP_Fig2b_dotplot(R = R)
   #3 Regenerate Figure 3c: Spatial maps showing the CD8 TIP scores in Xenium data
-  print("Fig 2c")
   TIP_Fig2c_Xenium(r = r.xenium,r1 = r1.xenium)
   #4 Test for statistical significance in the Xenium data
   P<-TIP_CD8.Xenium.test(r1 = r1.xenium)
   #5 Optional: Regenerate an extended version of Figure 3c
   TIP_Fig2c_Xenium.extended.version(r = r.xenium,r1 = r1.xenium)
   #6 Plot CD8 T cell states 
-  print("Fig 2d")
   #7 Regenerate Figure 2e: DAF heatmap
-  print("Fig 2e")
   HGSC_Fig2e_daf_heatmap(r=r, morph = morph, daf = daf)
   #8 Regenerate PNG Images for Figure 2f: DAF in situ
-  print("Fig 2f")
   HGSC_Fig2f_daf_in_situ(r=r, daf = daf, cell_2_rgb = cell_2_rgb)
-  #9 Regenerate Figure 2g: Make L-R table 
-  print("Fig 2g")
-  # HGSC_Fig2g_LR()
   return()
 }
 
@@ -104,7 +93,7 @@ TIP_Fig2b_dotplot<-function(R){
   X0$Estimate<-X0$HLM1.Estimate
   p<-call.dotPlot(X0,cex = 8)
 
-  pdf(get.file("Figures/Fig2d.pdf"))
+  pdf(get.file("Figures/Fig2b.pdf"))
   print(p)
   dev.off();par(font.axis = 2);par(font.lab = 2);par(font = 2)
   return()
@@ -169,42 +158,7 @@ TIP_Fig2c_Xenium.extended.version<-function(r,r1){
 }
 
 HGSC_Fig2d_fib_umap<- function(r, morph){
-  set.seed(1234)
-
-  #subset out fibroblasts
-  q <- subset_list(r, r$cells[r$cons$conf.score.cell.type > 0.95 &
-                                r$cell.types == "Fibroblast"])
-  meta <- morph[q$samples,]
-  row.names(meta) <- q$cells
-
-  # make umap
-  so <- CreateSeuratObject(q$tpm[!grepl("NegPrb", r$genes), ], meta.data = meta)
-  so <- ScaleData(so)
-  so <- FindVariableFeatures(so, nfeatures = 920)
-  so <- RunPCA(so, npcs = 30)
-  so <- RunUMAP(so, dims = 1:30)
-
-  # plot umap with sites annotations
-  a <- DimPlot(so, group.by = "sites_binary",
-               na.value = brewer.pal(n = 9, name = "Set3")[9]) +
-    theme(axis.ticks = element_blank(),
-          axis.line = element_blank(),
-          axis.title = element_blank(),
-          axis.text = element_blank()) +
-    scale_color_manual(values = c("dodgerblue", "salmon"),
-                       na.value = brewer.pal(n = 9, name = "Set3")[9])
-  b <- DimPlot(so, group.by = "type") +
-    scale_color_manual(values = brewer.pal(n = 8,
-                                           name = "Set3")[c(5,7:8)],
-                       na.value = brewer.pal(n = 9, name = "Set3")[9]) +
-    theme(axis.ticks = element_blank(),
-          axis.line = element_blank(),
-          axis.title = element_blank(),
-          axis.text = element_blank())
-
-  pdf(get.file("Figures/Fig2d.pdf"), width = 10, height =5)
-  print(a + b)
-  dev.off()
+  return()
 }
 
 HGSC_Fig2e_daf_heatmap <- function(r, morph, daf){
@@ -361,7 +315,11 @@ HGSC_Fig2f_daf_in_situ <- function(r, daf, cell_2_rgb, s = "SMI_T11_F019"){
 
 }
 
-HGSC_Figure3.data.regenerate<-function(){
+######################
+# SUPPLEMENTARY CODE #
+######################
+
+HGSC_Figure2.data.regenerate<-function(){
   #1. Download the SMI and Xenium datasets
   r.smi<-readRDS(get.file("Data/SMI_data.rds"))
   r.xenium<-readRDS(get.file("/Data/Xenium_data.rds"))
@@ -371,7 +329,7 @@ HGSC_Figure3.data.regenerate<-function(){
   r1.smi<-HGSC_SMI.process.CD8(r = r.smi,rslts = R$cell.type.specific$CD8.T.cell)
   #4 Process CD8 T cells and add TIP scores
   r1.xenium<-HGSC_Xenium.process.CD8.NK(r = r.xenium,rslts = R$cell.type.specific$CD8.T.cell)
-
+  
   return()
 }
 
@@ -379,6 +337,10 @@ TIP_find_all<-function(r){
   file1<-get.file("Results/TIP_all.rds")
   if(file.exists(file1)){
     return(readRDS(file1))
+  }
+  
+  if(missing(r)){
+    r<-readRDS(get.file("Data/SMI_data.rds"))
   }
   motile.cell<-c("CD8.T.cell","CD4.T.cell","NK.cell","Treg","Monocyte")
   R<-list()

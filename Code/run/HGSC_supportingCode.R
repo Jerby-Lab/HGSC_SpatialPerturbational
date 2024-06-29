@@ -1015,9 +1015,7 @@ spatial_sample_visualization <- function (seg_path,
   cellmask <- EBImage::channel(cellmask, "rgb")
   levels <- setdiff(unique(celltypes), cont_field)
   for (type in levels) {
-    # print(type)
     cellids = names(celltypes[celltypes == type])
-    # print(length(cellids))
     cellidx = unlist(lapply(cellids, function(x) as.integer(strsplit(x,
                                                                      split = "c")[[1]][2])))
     celltype_mask <- t(apply(cellseg, 1, function(x) {
@@ -1035,8 +1033,6 @@ spatial_sample_visualization <- function (seg_path,
   }
   if (cont_field != "") {
     cellids = names(celltypes[celltypes == cont_field])
-    print(cont_field)
-    print(length(cellids))
     cellidx = unlist(lapply(cellids, function(x) as.integer(strsplit(x,
                                                                      split = "c")[[1]][2])))
     celltype_mask <- t(apply(cellseg, 1, function(x) {
@@ -1469,4 +1465,175 @@ create_volcano_plot <- function(x, y,dot_names, zcat = 1.3,
     guides(color = guide_legend(title = "Significance"))
   return(p)
   
+}
+
+seuratW_get.embedding<-function(r,no.genes = 2000,n.pcs = 10,cd.flag = T,PCs = NULL,
+                                resolution = 0.4,norm.flag = T,tsne.flag = F,
+                                umap.flag = T,full.flag = F){
+  
+  D1<-seuratW_process(r = r,
+                      no.genes = no.genes,
+                      scores = NULL,
+                      plot.flag = T,
+                      n.pcs = n.pcs,
+                      cd.flag = cd.flag,
+                      PCA.approx = T,resolution = resolution,
+                      norm.flag = norm.flag,
+                      tsne.flag = tsne.flag,
+                      umap.flag = umap.flag,
+                      PCs = PCs)
+  
+  idx<-my.match(r$cells,rownames(D1@meta.data));table(is.na(idx))
+  r$clusters<-paste0("C",FetchData(D1,vars = "seurat_clusters")[idx,])
+  r$pca<-Embeddings(object = D1, reduction = "pca")[idx,]
+  r$pca.load<-Loadings(object = D1,reduction = "pca")
+  if(tsne.flag){r$tsne<-Embeddings(object = D1, reduction = "tsne")[idx,]}
+  if(umap.flag){r$umap<-Embeddings(object = D1, reduction = "umap")[idx,]}
+  if(full.flag){r$seurat<-D1}
+  return(r)
+}
+
+# Last modified:  Januray 20, 2022
+# Module:   Seurat Wrapper (seuratW)
+# Purpose:  Seurat wrapper for clustering and embedding single-cell data.
+
+seuratW_get.embedding<-function(r,no.genes = 2000,n.pcs = 10,cd.flag = T,PCs = NULL,
+                                resolution = 0.4,norm.flag = T,tsne.flag = F,
+                                umap.flag = T,full.flag = F){
+  
+  D1<-seuratW_process(r = r,
+                      no.genes = no.genes,
+                      scores = NULL,
+                      plot.flag = T,
+                      n.pcs = n.pcs,
+                      cd.flag = cd.flag,
+                      PCA.approx = T,resolution = resolution,
+                      norm.flag = norm.flag,
+                      tsne.flag = tsne.flag,
+                      umap.flag = umap.flag,
+                      PCs = PCs)
+  
+  idx<-my.match(r$cells,rownames(D1@meta.data));table(is.na(idx))
+  r$clusters<-paste0("C",FetchData(D1,vars = "seurat_clusters")[idx,])
+  r$pca<-Embeddings(object = D1, reduction = "pca")[idx,]
+  r$pca.load<-Loadings(object = D1,reduction = "pca")
+  if(tsne.flag){r$tsne<-Embeddings(object = D1, reduction = "tsne")[idx,]}
+  if(umap.flag){r$umap<-Embeddings(object = D1, reduction = "umap")[idx,]}
+  if(full.flag){r$seurat<-D1}
+  return(r)
+}
+
+seuratW_process<-function(r,no.genes = 1000, n.pcs = 10,tsne.flag = T,umap.flag = T,
+                          cluster.iter = F,cd.flag = F,scores = NULL,plot.flag = F,fileName = NULL,
+                          D1,resolution = 0.4,norm.flag = T,tsne.method = "Rtsne",PCA.approx = T,PCs){
+  print(paste(n.pcs,"PCs used."))
+  if(missing(D1)){
+    if(cd.flag){D1.data<-round(r$cd,2)}else{D1.data<-round(r$tpm,2)}
+    D1<-seuratW_createObject(r$genes,D1.data,r$sampleName,norm.flag = norm.flag)
+  }
+  
+  m = D1@assays$RNA@meta.data
+  row.names(m) <- r$genes
+  hvg.D1 <- get.top.elements(-m[,1:4], q = no.genes)$vf_vst_counts_variance.standardized
+  # D1 = FindVariableFeatures(D1, nfeatures = no.genes, method = "vst")
+  # hvg.D1 = VariableFeatures(D1)
+  D1 <- RunPCA(object = D1,features = hvg.D1,npcs = n.pcs,approx = PCA.approx)
+  X<-Embeddings(object = D1, reduction = "pca")[,1:n.pcs]
+  # v<-Loadings(object = D1, reduction = "pca")
+  
+  if(!missing(PCs)&!is.null(PCs)){
+    print("Using previous PCs!")
+    idx.pca<-match(rownames(D1@reductions$pca@cell.embeddings),
+                   rownames(PCs$cell.embeddings))
+    D1@reductions$pca@feature.loadings<-PCs$feature.loadings
+    D1@reductions$pca@cell.embeddings<-PCs$cell.embeddings[idx.pca,]
+  }
+  
+  b<-duplicated(X)
+  if(any(b)){
+    print(paste("Removing",sum(b),"cells."))
+    D1<-subset(D1,cells = rownames(D1@meta.data)[!b])
+  }
+  
+  if(tsne.flag){D1 <- RunTSNE(object = D1, reduction.use = "pca",dims = 1:n.pcs, do.fast = TRUE)}
+  if(umap.flag){D1<-RunUMAP(D1,dims = 1:n.pcs)}
+  
+  D1 <- FindNeighbors(object = D1,reduction = "pca",dims = 1:n.pcs)
+  D1 <- FindClusters(D1,resolution = resolution)
+  # reduction.type = "pca",
+  # dims.use = 1:n.pcs, save.SNN = T, resolution = resolution)
+  if(cluster.iter){
+    while(length(unique(D1@ident))==1){
+      resolution<-resolution+0.05
+      print(paste("Clustering with resolution",resolution))
+      D1 <- FindClusters(D1,resolution = resolution)
+    }
+    D1@resolution<-resolution
+  }
+  
+  idx<-my.match(rownames(D1@meta.data),colnames(D1.data))
+  if(!is.null(r$samples)){D1@meta.data<-cbind.data.frame(D1@meta.data,samples = r$samples[idx])}
+  if(!is.null(scores)){D1@meta.data<-cbind.data.frame(D1@meta.data,scores[idx,])}
+  return(D1)
+}
+
+seuratW_createObject<-function(genes,D1.data,D1.name,find.var = T,norm.flag = T){
+  print(paste("Processing",D1.name,"..."))
+  D1.data<-round(D1.data,2)
+  D1.data<-D1.data[genes,!duplicated(colnames(D1.data))];dim(D1.data)
+  D1 <- CreateSeuratObject(counts = D1.data)
+  if(norm.flag){
+    D1 <- NormalizeData(object = D1)
+  }
+  D1 <- ScaleData(object = D1)
+  if(find.var){D1 <- FindVariableFeatures(object = D1, do.plot = FALSE)}
+  D1@meta.data$source <- D1.name
+  return(D1)
+}
+
+setdiff.lists.by.idx<-function(l1,l2){
+  L<-lapply(1:length(l1), function(x) setdiff(l1[[x]],l2[[x]]))
+  names(L)<-names(l1)
+  print(summary(L))
+  return(L)
+}
+
+apply.formula.HLM<-function(r,X,Y,MARGIN = 1,formula = "y ~ (1 | samples) + x",ttest.flag = F){
+  if(is.matrix(Y)){
+    if(ttest.flag){
+      m1<-t.test.mat(Y,X)
+      b<-rowSums(p.adjust.mat(m1[,1:2])<0.1,na.rm = T)>0
+      m1<-m1[b,];Y<-Y[b,]
+      print(paste("Testing",sum(b),"genes that show a signal."))
+    }
+    m<-t(apply(Y,MARGIN = MARGIN,function(y){formula.HLM(y,X,r,formula = formula)}))
+  }else{
+    m<-t(apply(X,MARGIN = MARGIN,function(x){formula.HLM(Y,x,r,formula = formula)}))
+  }
+  colnames(m)<-c("Estimate","P")
+  m<-cbind.data.frame(Z = get.cor.zscores(m[,"Estimate"],m[,"P"]),m)
+  if(ttest.flag){
+    m<-cbind.data.frame(m,ttest = m1)
+  }
+  return(m)
+}
+
+formula.HLM<-function(y,x,r0, formula = "y ~ (1 | samples) + x",
+                      val = ifelse(is.numeric(x),"","TRUE"),return.all = F){
+  r0$x<-x;r0$y<-y
+  f<-function(r0){
+    M1 <- with(r0, lmer (formula = formula))
+    if(return.all){
+      c1<-summary(M1)$coef[,c("Estimate","Pr(>|t|)")]
+    }else{
+      c1<-summary(M1)$coef[paste0("x",val),]
+      idx<-match(c("Estimate","Pr(>|t|)"),names(c1))
+      c1<-c1[idx]
+    }
+    return(cbind(c1,singular = isSingular(M1)))
+  }
+  c1<-tryCatch({f(r0)},
+               error = function(err){return(c(NA,NA,NA))})
+  # print(c1)
+  return(c1)
 }

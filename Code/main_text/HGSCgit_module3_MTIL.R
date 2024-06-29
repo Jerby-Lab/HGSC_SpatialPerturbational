@@ -26,7 +26,6 @@ HGSC_Figure3_mTIL<-function(r,r1,rslts){
     r1<-readRDS(get.file("Data/SMI_data_malignant.rds"))
     r1<-mTIL_Fig3_prepData(r1)
     rslts<-readRDS(get.file("Results/HGSC_mTIL_Malignant2env_TNK.cell.rds"))
-    s <- readRDS(get.file("Data/MERFISH_data.rds"))
   }
   
   #1 Regenerate Figure 3a: MTIL heatmap
@@ -106,11 +105,7 @@ mTIL_Fig3a<-function(r1,rslts){
 #' @return null, prints pdf figure to disk. 
 mTIL_Fig3b <- function(r){
   # read data
-  mal2env <- readRDS("~/Projects/HGSC_SpatialPerturbational_tmp/Results/HGSC_mTIL_Malignant2env_TNK.cell.rds")
-  up_z <- apply(mal2env$sum[mal2env$sig$hot100.up,1:4],1, mean)
-  down_z <- apply(mal2env$sum[mal2env$sig$hot100.down,1:4],1, mean)
-  up_z <- up_z[order(up_z, decreasing = T)]
-  down_z <- -down_z[order(down_z, decreasing = F)]
+  mtilgenes <- readRDS(get.file("Results1/mTIL_sig.rds"))
   
   # run mtil up GO enrichment
   results1 <- (gprofiler2::gost(mtilgenes$hot100.up,
@@ -200,21 +195,23 @@ mTIL_Fig3b <- function(r){
 #' @return this function returns nothing, but writes figures in .pdf format 
 #' in the Figures/ folder. 
 mTIL_Fig3c <-function(r,r1,rslts){
-  # use overall scores to color the malignant cells.
+  #1 Use the mTIL scores to color the malignant cells.
   X<-get.mat(r1$cells,c("hot","hot100"),data = NA)
   for(x in unique(r1$samples)){
     b<-r1$samples==x
-    X[b,]<-apply(cap.mat(r1$scores[b,c("hot","hot100")],cap = 0.01,MARGIN = 2),2,function(x) scores.2.colors(x))
+    X[b,]<-apply(cap.mat(r1$scores[b,c("hot","hot100")],
+                         cap = 0.01,MARGIN = 2),2,
+                 function(x) scores.2.colors(x))
   }
   
-  # color T/NK cells in black and other cells in grey.
+  #2 Color TNK cells in black and other cells in grey.
   idx<-match(r$cells,r1$cells)
   X1<-X[idx,]
   X1[is.na(idx)&r$cell.types=="TNK.cell",]<-"black" # T cells are marked in black
   X1[is.na(idx)&r$cell.types!="TNK.cell",]<-"grey" # Non-malignant cells other than T cells are shown in grey
   rownames(X1)<-r$cells
   
-  # plot the spatial maps per sample to regenerate Figure 4D. (centroids in situ)
+  #3 Plot the spatial maps per sample to regenerate Figure 4D. (centroids in situ)
   r$ids<-paste(r$patients,r$sites,sep = ", ")
   rslts$ttest.per.sample$ids<-r$ids[match(rownames(rslts$ttest.per.sample),r$samples)]
   samples<-c('SMI_T10_F001','SMI_T10_F015','SMI_T12_F001',
@@ -232,13 +229,14 @@ mTIL_Fig3c <-function(r,r1,rslts){
   }
   dev.off();par(font.axis = 2);par(font.lab = 2);par(font = 2)
   
-  # generate space-filling spatial maps for fig 3d. 
-  hotcold= readRDS(get.file("Results/HGSC_hotInSituPlotColors.rds"))
+  #4 Also generate space-filling spatial maps to regenerate Figure 3d.
+  # a. load information
   cell2rgb <- list("Other" = c(200, 200, 200), # grey
                    "Malignant" = c(7, 224, 0), #green
                    "TNK.cell" = c(0, 0, 0)) # black
-  lapply(samples, function(sample){
-    print(sample)
+  
+  # b. plot for each sample
+  out <- lapply(samples, function(sample){
     # segpath
     seg_path = Sys.glob(paste0(get.file("Results/Segmentation/"), sample, "*"))[1]
     
@@ -250,8 +248,35 @@ mTIL_Fig3c <-function(r,r1,rslts){
     names(celltypes) <- q$cells
     celltypes[celltypes != "TNK.cell" & celltypes != "Malignant"] <- "Other"
     
+    # get scores for sample (new)
+    mal <- subset_list(q, subcells = q$cells[q$cell.types == "Malignant"])
+    mal$scores <- get.OE(mal, rslts$sig)
+    
     # set up the colors of the continuous values
-    contvals <- hotcold[names(celltypes),1]
+    p <- ggplot(data.frame(s = cap_object(mal$scores[,"hot100"], 0.05), 
+                           mal$coor),
+                aes(x = x,
+                    y =y,
+                    col = s)) +
+      geom_point() +
+      scale_color_gradient2(low = '#009392', 
+                            mid = '#f6edbd', 
+                            high = '#A01C00',
+                            midpoint = median(
+                              cap_object(mal$scores[,"hot100"], 0.05))) +
+      coord_fixed()
+    colors <- data.frame(ggplot_build(p)$data[[1]])[,1]
+    names(colors) <- names(mal$scores[,"hot100"])
+    leg <- ggpubr::as_ggplot(ggpubr::get_legend(p))
+    contvals = colors
+    
+    if (sample == "SMI_T10_F001") {
+      pdf(get.file("Figures/Fig3c_legend.pdf"),
+          height = 4,
+          width = 3)
+      print(leg)
+      dev.off()
+    }
     
     # run visualization
     spatial_sample_visualization(seg_path,
@@ -263,29 +288,14 @@ mTIL_Fig3c <-function(r,r1,rslts){
                                  low_qc_color = 1,
                                  cont_field = "Malignant",
                                  contvals = contvals,
-                                 outfile = get.file(paste0("Figures/Fig3c_",
+                                 outfile = get.file(paste0("Figures/Fig3cTMP_",
                                                            sample,
                                                            ".png")))
     
     return("")
   })
-  scores = readRDS(get.file("Results/HGSC_malignant_hotScores.rds"))
-  colbar <- data.frame(x = rep(2, dim(scores)[1]),
-                       y = scores[,1],
-                       col = color.scale(scores[,1],
-                                         c(0,10),
-                                         0.8,0.8,color.spec = "hsv"))
-  p <- ggplot(colbar, aes(x, y,col = y)) +
-    geom_point(size = 0.1) +
-    scale_color_gradientn(colors = rainbow(20)[-c(1,9,10)],
-                          name = "mTIL in \nMalignant Cells",
-                          breaks = c(-1.5, -1, -0.5, 0, 0.5, 1, 1.5))
-  pdf(get.file("Figures/Fig3c_legend.pdf"),
-      height = 4,
-      width = 3)
-  leg <- as_ggplot(get_legend(p))
-  print(leg)
-  dev.off()
+  
+  return()
 }
 
 #' Figure 3d. MTIL as a function of TIL proximity and abundance (boxplots)
@@ -336,9 +346,15 @@ mTIL_Fig3d<-function(r1,rslts,q1 = 0.75){
   
   # plot to disk
   pdf(get.file("Figures/Fig3d.pdf"))
-  p1<-call.boxplot(r1$scores[,"hot100"],paste0("L",r1$envTIL1),main = "Fig3d",
-                   ylab = "mTIL program OE",xlab = "TIL levels (radius)",blank.flag = T,labels = NULL)
-  p[[4]]<-p1+stat_compare_means(comparisons = list(c("L0","L1"),c("L1","L2"),c("L2","L3")),label = "p.signif",method = "t.test")+theme(legend.position="none")
+  p1<-call.boxplot(r1$scores[,"hot100"],
+                   paste0("L",r1$envTIL1),main = "Fig3d",
+                   ylab = "mTIL program OE",
+                   xlab = "TIL levels (radius)",blank.flag = T,labels = NULL)
+  p[[4]]<-p1+stat_compare_means(comparisons = list(c("L0","L1"),
+                                                   c("L1","L2"),
+                                                   c("L2","L3")),
+                                label = "p.signif",method = "t.test")+
+    theme(legend.position="none")
   print(call.multiplot(p[c(4,1,3,2)],cols = 3,nplots = 6))
   dev.off();par(font.axis = 2);par(font.lab = 2);par(font = 2)
 }

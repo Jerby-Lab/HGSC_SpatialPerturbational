@@ -105,10 +105,10 @@ mTIL_Fig3a<-function(r1,rslts){
 #' @return null, prints pdf figure to disk. 
 mTIL_Fig3b <- function(r){
   # read data
-  mtilgenes <- readRDS(get.file("Results1/mTIL_sig.rds"))
+  mtilgenes <- readRDS(get.file("Results/HGSC_mTIL.rds"))
   
   # run mtil up GO enrichment
-  results1 <- (gprofiler2::gost(mtilgenes$hot100.up,
+  results1 <- (gprofiler2::gost(mtilgenes$mTIL.up,
                                 custom_bg = r$genes[!grepl("NegPrb", r$genes)],
                                 user_threshold = 0.1,
                                 correction_method = "fdr",
@@ -117,14 +117,14 @@ mTIL_Fig3b <- function(r){
   # compile results into dataframe
   dfup <- results1$result %>%
     filter(term_id %!in% unlist(results1$result$parents))
-  dfup <- dfup[c(3, 21, 22, 8, 9, 15, 42, 27),] %>%
+  dfup <- dfup[c(6, 4, 3, 17, 28, 11, 42, 46),] %>%
     mutate(neglog10 = -log10(p_value)) %>%
     mutate(term = paste0(term_name, "\n(",term_id, ")")) %>%
     arrange(neglog10)
   dfup$term <- factor(dfup$term, levels = dfup$term)
   
   # run mtil down GO enrichment
-  results2 <- gprofiler2::gost(mtilgenes$hot100.down,
+  results2 <- gprofiler2::gost(mtilgenes$mTIL.down,
                                custom_bg = r$genes[!grepl("NegPrb", r$genes)],
                                user_threshold = 0.1,
                                correction_method = "fdr",
@@ -133,7 +133,7 @@ mTIL_Fig3b <- function(r){
   # compile results into dataframe
   dfdown <- results2$result %>%
     filter(term_id %!in% unlist(results2$result$parents))
-  dfdown <- dfdown[c(6,12,21, 27, 32, 38, 28, 33),]
+  dfdown <- dfdown[c(9,11,14, 18, 20, 21, 22, 19),]
   dfdown <- dfdown %>% mutate(neglog10 = -log10(p_value)) %>%
     mutate(term = paste0(term_name, "\n(",term_id, ")")) %>%
     arrange(neglog10)
@@ -167,7 +167,7 @@ mTIL_Fig3b <- function(r){
                                                      size = 4,
                                                      shape = 15)),
            size = guide_legend("No. Genes")) +
-    xlab("-log10(p_value)") +
+    xlab("-log10(q_value)") +
     theme(axis.title.y = element_blank(),
           axis.text = element_text(size = 10),
           axis.text.x = element_text(angle = 90),
@@ -177,7 +177,7 @@ mTIL_Fig3b <- function(r){
   
   # plot to disk
   pdf(get.file("Figures/Fig3b.pdf"),
-      width =9,
+      width =11,
       height = 4)
   print(p2)
   dev.off()

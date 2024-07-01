@@ -402,9 +402,9 @@ mTIL_Fig3e<-function(r1,rslts,q1 = 0.75){
 #' @return null, plots a .png of the figure to disk.  
 mTIL_Fig3f<- function(i = 4){
   # map MTIL onto whole tissue data.
-  mal <- readRDS(paste0("Data/WT", i , "_Malignant.rds"))
+  mal <- readRDS(get.file(paste0("Data/WT", i , "_Malignant.rds")))
   plt_mal <- data.frame(mal$coor.global, cap_object(mal$scores, q = 0.1))
-  r <- readRDS(paste0("Data/WT", i ,"_wSubtypes.rds"))
+  r <- readRDS(get.file(paste0("Data/WT", i ,"_wSubtypes.rds")))
   nonmal <- subset_list(r, subcells = r$cells[r$cell.types.conf != "Malignant"])
   remove(r)
   plt_df <- data.frame(nonmal$coor.global, cell.types = nonmal$cell.types.conf) %>% 
@@ -446,6 +446,13 @@ mTIL_Fig3f<- function(i = 4){
 # SUPPLEMENTARY CODE #
 ######################
 
+#' Discovery Dataset Malginant Cells
+#'
+#' Processes Discovery dataset for malignant cells.
+#'
+#' @param r1 Data frame with SMI data (optional).
+#' @return Data frame with processed SMI data.
+#' @export
 HGSC_SMI.process.mal<-function(r1){
   
   if(missing(r1)){r1<-readRDS(get.file("Data/SMI_data_malignant.rds"))}
@@ -471,52 +478,13 @@ HGSC_SMI.process.mal<-function(r1){
   
 }
 
-mTIL_Fig_supp<-function(r1){
-  r1 <- readRDS(get.file("Data/SMI_data_malignant.rds"))
-  
-  pdf("/Volumes/ljerby/ljerby/HGSC/Figures/HGSC_Fig3_supp.mTIL.per.site.pdf")
-  print("Supplemantary Figure showing the mTIL-TIL connections in different sites.")
-  print(call.boxplot(r1$scores[,"hot100"],r1$sites,labels = paste0(r1$envTIL1),
-                     ylab = "mTIL program OE",xlab = "Site",legend.name = "TIL level"))
-  dev.off();par(font.axis = 2);par(font.lab = 2);par(font = 2)
-  
-  pdf("/Volumes/Resource2/HGSC/Figures/HGSC.plot4_mTIL.boxplot2.pdf")
-  
-  print("Different levels of TILs, based on distance and cell types")
-  p1<-call.boxplot(r1$scores[,"hot100"],paste0("L",r1$envTIL1),ylab = "mTIL program OE",xlab = "TIL levels (radius)",blank.flag = T,labels = NULL)
-  p1<-p1+stat_compare_means(comparisons = list(c("L0","L1"),c("L1","L2"),c("L2","L3")),label = "p.signif",method = "t.test")+theme(legend.position="none")
-  p2<-call.boxplot(r1$scores[,"hot100"],paste0("L",r1$envTIL2),ylab = "mTIL program OE",xlab = "No. types of TILs",labels = NULL)
-  p2<-p2+stat_compare_means(comparisons = list(c("L0","L1"),c("L1","L2"),c("L2","L3"),c("L3","L4")),label = "p.signif",method = "t.test")+theme(legend.position="none")
-  call.multiplot(list(p1,NULL,p2,NULL,NULL),nplots = 6,cols = 3)
-  
-  
-  pdf("/Volumes/Resource2/HGSC/Figures/HGSC.plot4_mTIL.boxplot2.pdf")
-  print("mTIL as a function of CD8/CD4 T cells and NK cells.")
-  par(mfrow=c(2,3),oma = c(1, 1, 0, 1),xpd = T)
-  b<-r1$b.cold|r1$cd4.pos
-  boxplot.test(r1$scores[b,"hot100"],ifelse(r1$cd4.pos[b],"CD4+","CD4-"),xlab = "Cell environment",
-               main = "CD4 T cell",ylab = "mTIL expression",legend.flag = F)
-  b<-r1$b.cold|r1$cd8.pos
-  boxplot.test(r1$scores[b,"hot100"],ifelse(r1$cd8.pos[b],"CD8+","CD8-"),xlab = "Cell environment",
-               main = "CD8 T cell",ylab = "mTIL expression",legend.flag = F)
-  b<-r1$b.cold|r1$nk.pos
-  boxplot.test(r1$scores[b,"hot100"],ifelse(r1$nk.pos[b],"NK+","NK-"),xlab = "Cell environment",
-               main = "NK cell",ylab = "mTIL expression",legend.flag = F)
-  
-  # library(ggpubr)
-  
-  
-  print("Supplementary Figure showing the baseline variation across patients")
-  p3<-call.boxplot(r1$scores[r1$b.cold,"hot100"],r1$patients[r1$b.cold],ylab = "Program Expression",
-                   xlab = "Patients",add.anova = T,main = "TIL-high Program, cold niches")
-  print(p3)
-  
-  # call.boxplot(r1$scores[r1$b.cold,"hot100"],r1$samples[r1$b.cold],ylab = "Program Expression",
-  #            xlab = "Patients",labels = r1$sites[r1$b.cold],add.anova = T,main = "TIL-high Program, cold niches")
-  dev.off();par(font.axis = 2);par(font.lab = 2);par(font = 2)
-  return()
-}
-
+#' Extract M_{TIL} and T/NK cell levels
+#'
+#' Detects M_{TIL} and T/NK cell levels in Discovery dataset using overall
+#' expression calcualtions. 
+#'
+#' @return List of results from mTIL detection.
+#' @export
 SMI_mTIL.detect<-function(){
   r<-readRDS(get.file("Data/SMI_data.rds"))
   r1<-cell2env_prep.data(r,cell.type = "Malignant")
@@ -524,6 +492,18 @@ SMI_mTIL.detect<-function(){
   cell2env1<-cell2env_main(r1,tme.cell.type = "TNK.cell",cell.type = "Malignant",name = "mTIL")
 }
 
+#' Cell <> Environment Main Analysis
+#'
+#' Main function for cell to environment analysis (uses mixed effects modeling)
+#' to discover gene sets associated with abundance of a certain cell type in a 
+#' cells environment. 
+#'
+#' @param r1 List object with Discovery data (malignant cells only)
+#' @param tme.cell.type Type of TME cells (default is "TNK.cell").
+#' @param cell.type Type of cells to analyze (default is "Malignant").
+#' @param name Name for the analysis (default is "mTIL").
+#' @return List of results from the cell to environment analysis.
+#' @export
 cell2env_main<-function(r1,tme.cell.type = "TNK.cell",cell.type = "Malignant",name = "mTIL"){
   
   file1<-paste0(get.file("Results/HGSC_"),name,"_",paste(cell.type,collapse = "."),
@@ -562,6 +542,14 @@ cell2env_main<-function(r1,tme.cell.type = "TNK.cell",cell.type = "Malignant",na
   return(rslts)
 }
 
+#' Prep Data for Cell <> Environment analysis 
+#'
+#' Prepares data for cell to environment analysis.
+#'
+#' @param r List object with Discovery data (malignant cells only)
+#' @param cell.type Type of cells to analyze.
+#' @return Data frame with prepared data.
+#' @export
 cell2env_prep.data<-function(r,cell.type){
   r1<-set.list(r,is.element(r$cell.types,cell.type))
   r1<-log.comp(r1)
@@ -571,6 +559,15 @@ cell2env_prep.data<-function(r,cell.type){
   return(r1)
 }
 
+#' Cell to Environment SVM
+#'
+#' Performs SVM analysis for cell to environment data.
+#'
+#' @param r1 List object with Discovery data (malignant cells only)
+#' @param cv.type Type of cross-validation ("all", "patient.level", "cell.level").
+#' @param tme.cell.type Type of TME cells.
+#' @return List of SVM results.
+#' @export
 cell2env_SVM<-function(r1,cv.type,tme.cell.type){
   if(cv.type=="all"){
     rslts<-list(svm.pts.cv = cell2env_SVM(r1,cv.type = "patient.level",tme.cell.type),
@@ -612,6 +609,18 @@ cell2env_SVM<-function(r1,cv.type,tme.cell.type){
   return(rslts)
 }
 
+#' Wrapper around SVM analysis for Discovery dataset
+#'
+#' Calls SVM analysis for Discovery dataset
+#'
+#' @param y Response variable.
+#' @param X Predictor matrix.
+#' @param b Boolean vector for training data.
+#' @param cost Cost parameter for SVM (default is 1).
+#' @param main Title for the plot (default is "").
+#' @param X3 Additional predictor matrix for validation (optional).
+#' @return List of SVM results.
+#' @export
 SMI_call.svm<-function(y,X,b,cost = 1,main = "",X3){
   model <- svm(X[b,], as.factor(y[b]),probability = T,cost = cost)
   pred1 <- predict(model, X[b,],probability = T)
@@ -619,13 +628,9 @@ SMI_call.svm<-function(y,X,b,cost = 1,main = "",X3){
   predAll <- predict(model, X,probability = T)
   predAllp <- attr(predAll, "probabilities")[,"TRUE"]
   
-  # d<-ifelse(mean(pred1p[pred1])>mean(pred1p[pred1==FALSE]),1,-1)
-  # pred1p<-pred1p*d
   table(pred1,y[b])
-  # boxplot(pred1p~pred1)
   pred2 <- predict(model, X[!b,],probability = T)
   pred2p <- attr(pred2, "probabilities")[,"TRUE"]
-  # boxplot(pred2p~pred2)
   
   rslts1<-list(train = mean(y[b]==pred1),
                test = mean(y[!b]==pred2),

@@ -722,6 +722,26 @@ violin.split<-function(scores, treatment, conditions, main = "",
   }
 }
 
+#' Call Dot Plot
+#'
+#' Generates a dot plot.
+#'
+#' @param X Data frame for plotting.
+#' @param cex Size of the points (default is 12).
+#' @return ggplot object for the dot plot.
+#' @export
+call.dotPlot<-function(X,cex = 12){
+  p<-ggplot(data = X,aes(x = cell.type, y = Gene, color = Estimate, size = Z)) +
+    geom_point() +
+    cowplot::theme_cowplot() +
+    theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1,size = cex),
+          axis.text.y = element_text(size=cex)) +
+    scale_colour_gradient2(low = "blue",high = "red",midpoint = 0,
+                           oob = scales::squish, name = 'Effect size')+
+    geom_point(shape = 1,colour = "black")
+  return(p)
+}
+
 #' Cap Matrix
 #'
 #' Caps the values in a matrix to specified quantiles.

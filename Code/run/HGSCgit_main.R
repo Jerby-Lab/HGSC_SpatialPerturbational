@@ -48,19 +48,23 @@ HGSC_main<-function(){
   HGSC_Figure1_SpatiomolecularMapping(cell_2_rgb=cell_2_rgb)
   r.smi<-readRDS(get.file("Data/SMI_data.rds"))
   r.xenium<-readRDS(get.file("/Data/Xenium_data.rds"))
+  print("2")
   HGSC_Figure2_TIP_DF(rTNK.smi,
                       r.xenium,
                       rTNK.xenium,R,
                       r = r.smi,
                       morph=morph, daf=daf,
                       cell_2_rgb=cell_2_rgb)
+  print("3")
   HGSC_Figure3_mTIL(r = r.smi,
                     r1 = rmal.smi,
                     rslts = rslts)
+  print("4")
   HGSC_Figure4_ICB()
+  print("5")
   HGSC_Figure5_CNAs(r=r.smi) 
   HGSC_Figure6_perturbMeta(rslts = rslts,rslts1 = rslts1,
-                           rslts2 = rslts2,rslts3 = rslts3)  # got up to here in terms of triaging data
+                           rslts2 = rslts2,rslts3 = rslts3)
   HGSC_Figure7_perturbOC(r = r.prt,
                          rslts = rslts4,
                          sig = mTIL.sig,

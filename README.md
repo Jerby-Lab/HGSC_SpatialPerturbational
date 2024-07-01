@@ -21,7 +21,7 @@ You can find the resulting figure panels in _Figures_. The estimated run time is
 
 ## Citation
 
-Yeh, Aguirre, Laveroni et al. "Mapping ovarian cancer spatial organization uncovers immune evasion drivers at the genetic, cellular, and tissue level". (2024). Nature Immunology (in press).
+Yeh, Aguirre, Laveroni et al. **"Mapping ovarian cancer spatial organization uncovers immune evasion drivers at the genetic, cellular, and tissue level"**. (2024). _**Nature Immunology (in press).**_
 
 ## **Software Requirements**
 

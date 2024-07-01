@@ -126,8 +126,6 @@ HGSC_Fig5b<-function(r1,rslts){
   pdf(get.file("Figures/Fig5b.pdf"))
   call.multiplot(l1,nplots = 6,cols = 3)
   dev.off();par(font.axis = 2);par(font.lab = 2);par(font = 2)
-  
-  return()
 }
 
 #' Figure 5c. MTIL vs. CNAs Mixed Effects
@@ -159,7 +157,6 @@ HGSC_Fig5c<-function(rslts){
   legend(legend = c("Negative","Positive"), pch = 15,
          "topright",col = c("lightblue","darkred"))
   dev.off();par(font.axis = 2);par(font.lab = 2);par(font = 2)
-  return()
 }
 
 #' Figure 5e. MTIL vs. CNAs Mixed Effects
@@ -180,7 +177,6 @@ HGSC_Fig5e<-function(rslts){
   # split results into deletion and amplification
   Xd<-rslts$plot.del
   Xa<-rslts$plot.amp
-  
   # make beanplots. 
   pdf(get.file("Figures/Fig5e.pdf"))
   violin.split(Xd$TIL,Xd$Del,conditions = Xd$Gene,
@@ -190,6 +186,5 @@ HGSC_Fig5e<-function(rslts){
                ylab = "TIL levels",xlab = "mTIL DOWN Genes",
                main = "TCGA, mTIL CNA vs. TIL levels")
   dev.off();par(font.axis = 2);par(font.lab = 2);par(font = 2)
-  return()
 }
 

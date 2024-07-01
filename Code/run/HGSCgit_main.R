@@ -58,9 +58,9 @@ HGSC_main<-function(){
                     r1 = rmal.smi,
                     rslts = rslts)
   HGSC_Figure4_ICB()
-  HGSC_Figure5_CNAs(r=r.smi) # got up to here in terms of triaging data
+  HGSC_Figure5_CNAs(r=r.smi) 
   HGSC_Figure6_perturbMeta(rslts = rslts,rslts1 = rslts1,
-                           rslts2 = rslts2,rslts3 = rslts3)
+                           rslts2 = rslts2,rslts3 = rslts3)  # got up to here in terms of triaging data
   HGSC_Figure7_perturbOC(r = r.prt,
                          rslts = rslts4,
                          sig = mTIL.sig,

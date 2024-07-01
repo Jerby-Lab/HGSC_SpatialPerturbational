@@ -17,8 +17,7 @@ Follow the steps below to reproduce the figures and tables in Yeh, Aguirre, Lave
 
 4. In RStudio or within a script, run: ```HGSC_main()```
 
-You can find the resulting figure panels in _Figures_. The estimated run time is ~20 minutes on the platform aarch64-apple-darwin20 (64-bit) under macOS Sonoma 14.4.1 operating system with 10 cores. 
-
+You can find the resulting figure panels in _Figures_. The estimated run time is ~20 minutes on the platform aarch64-apple-darwin20 (64-bit) under macOS 14.5 operating system. 
 ## Citation
 
 Yeh, Aguirre, Laveroni _et al._ _**Mapping ovarian cancer spatial organization uncovers immune evasion drivers at the genetic, cellular, and tissue level**_.

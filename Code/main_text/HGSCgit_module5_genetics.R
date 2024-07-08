@@ -16,7 +16,6 @@
 #' This function calls code to reproduce main text Figures 5a, b, c, e. 
 #' All other figures were produced outside of R. Source Data for 5f and 5h are
 #' available with the published manuscript.  
-#'
 #' @param r r list object that contains data for the Discovery dataset
 #' @param r1 r1 list object that contains data for the malginant component of 
 #' the Discovery dataset 
@@ -28,10 +27,10 @@
 #' TCGA data. 
 #' @return this function returns nothing, but writes figures in .pdf format 
 #' in the Figures/ folder. 
-HGSC_Figure5_CNAs<-function(r,r1,rslts1,rslts2){
+HGSC_Figure5_CNAs<-function(r1,rslts1,rslts2){
   if(missing(r1)){
-    r1<-readRDS(get.file("Data/SMI_mTIL_CNA.rds"))
-    rslts1<-readRDS(get.file("Results/HGSC_CNAs.vs.mTIL_SMI.rds"))
+    r1<-readRDS(get.file("Data/ST_CNAs.rds"))
+    rslts1<-readRDS(get.file("Results/HGSC_CNAs.vs.TIL_ST.rds"))
     rslts2<-readRDS(get.file("Results/HGSC_CNAs.vs.TIL_TCGA.rds"))
   }
   
@@ -55,7 +54,7 @@ HGSC_Figure5_CNAs<-function(r,r1,rslts1,rslts2){
 #' in the Figures/ folder. 
 HGSC_Fig5a <-function(){
   # load variation data. 
-  df = readRDS(get.file("Results/HGSC_PatientVariation.rds"))
+  df <- readRDS(get.file("Results/ST_Mtil_oe.rds"))
   
   # sort and label patients from different datasets 
   df$pat <- df$patients
@@ -103,12 +102,6 @@ HGSC_Fig5a <-function(){
 #' @return this function returns nothing, but writes a figure in .pdf format 
 #' in the Figures/ folder. 
 HGSC_Fig5b<-function(r1,rslts){
-  # load data if missing 
-  if(missing(r1)){
-    r1<-readRDS(get.file("Data/SMI_mTIL_CNA.rds"))
-    rslts<-readRDS(get.file("Results/HGSC_mTIL_vsCNAs.rds"))
-  }
-  
   # function to make boxplots
   f1<-function(x){
     idx<-order(r1$cnv[,x])
@@ -129,20 +122,13 @@ HGSC_Fig5b<-function(r1,rslts){
 }
 
 #' Figure 5c. MTIL vs. CNAs Mixed Effects
-#'
 #' Visualization of full list of MTIL genes with statistically significant 
 #' association with CNA. 
-#' 
 #' @param rslts list object containing scores from mixed effects modeling 
 #' between gene expression and copy number alterations in the Discovery dataset. 
 #' @return this function returns nothing, but writes a figure in .pdf format 
 #' in the Figures/ folder. 
 HGSC_Fig5c<-function(rslts){
-  # load data if missing
-  if(missing(rslts)){
-    rslts<-readRDS(get.file("Results/HGSC_mTIL_vsCNAs.rds"))
-  }
-  
   # adjust the Z-score for MHT 
   z<-rslts$Z[,"mTIL.up.Z"]
   names(z)<-rownames(rslts$Z)
@@ -150,34 +136,24 @@ HGSC_Fig5c<-function(rslts){
   z<-sort(z)
   
   # plot to disk 
-  pdf(get.file("Figures/Fig5c.pdf"))
-  barplot(abs(z),las=2,cex.names = 0.5,xlab = "Genes CNA",
-          col = ifelse(z<0,"lightblue","darkred"),
-          ylab = "Z-score",main = "CNAs correlated with the mTIL program")
-  legend(legend = c("Negative","Positive"), pch = 15,
-         "topright",col = c("lightblue","darkred"))
+  pdf(get.file("Figures/Fig5c.pdf"),width = 8,height = 10)
+  barplot(abs(z),las=2,cex.names = 0.7,ylab = "Genes CNA",
+          col = ifelse(z<0,"grey","lightblue"),
+          xlab = "Z-score",main = paste("CNAs correlated with the MTIL program"),horiz = T)
+  legend(legend = c("Positive","Negative"), lwd = ,pch = 15, "topright",col = c("lightblue","grey"))
   dev.off();par(font.axis = 2);par(font.lab = 2);par(font = 2)
 }
 
 #' Figure 5e. MTIL vs. CNAs Mixed Effects
-#'
 #' Visualization of full list of MTIL genes with statistically significant 
 #' association with CNA. 
-#' 
 #' @param rslts list object containing scores from mixed effects modeling 
 #' between gene expression and copy number alterations in the TCGA dataset. 
 #' @return this function returns nothing, but writes a figure in .pdf format 
 #' in the Figures/ folder. 
 HGSC_Fig5e<-function(rslts){
-  # load results if missiong
-  if(missing(rslts)){
-    rslts<-readRDS(get.file("Results/HGSC_CNAs.vs.TIL_TCGA.rds"))
-  }
-  
-  # split results into deletion and amplification
   Xd<-rslts$plot.del
   Xa<-rslts$plot.amp
-  # make beanplots. 
   pdf(get.file("Figures/Fig5e.pdf"))
   violin.split(Xd$TIL,Xd$Del,conditions = Xd$Gene,
                ylab = "TIL levels",xlab = "mTIL UP Genes",

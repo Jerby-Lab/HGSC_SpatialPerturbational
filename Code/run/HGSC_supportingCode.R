@@ -19,7 +19,6 @@ umap.ggplot<-function(umapX,labels,labels.name = "",main = "",size = 0.2,
                       xlim1,ylim1,reorder.flag = F,remove.legend = F){
   if((is.matrix(labels)|is.data.frame(labels))&&ncol(labels)>1){
     p<-lapply(colnames(labels),function(x){
-      print(x)
       p1<-umap.ggplot(umapX,labels = labels[,x],labels.name = labels.name,main = x,size = size)
       return(p1)
     })

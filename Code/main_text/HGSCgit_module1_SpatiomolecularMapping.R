@@ -11,35 +11,30 @@
 # Figure 1h. Cell Co-localization Quotient Analysis
 
 #' Figure 1 Wrapper Function
-#'
 #' This function calls code to reproduce main text Figures 1b-h. 
-#'
-#' @param cell_2_rgb a named list of colors assigned to each of the cell types
 #' @return this function returns nothing, but writes figures in .pdf format 
 #' in the Figures/ folder. 
-HGSC_Figure1_SpatiomolecularMapping <- function(cell_2_rgb){
+HGSC_Figure1_SpatiomolecularMapping <- function(){
   #1 Regenerate input files for CoMut plot in python
   master <- HGSC_Fig1b_make_comut()
   #2 Regenerate Figure 1c: Cell Type UMAPs
-  HGSC_Fig1c_celltype_umaps(cell_2_rgb = cell_2_rgb)
+  HGSC_Fig1c_celltype_umaps()
   #3 Regenerate Figure 1d: Cell Types in situ
-  HGSC_Fig1d_celltypes_insitu(cell_2_rgb=cell_2_rgb)
-  #4 Regenerate Figure 1e: Coembedding scross ST and scRNA-seq datasets
-  HGSC_Fig1e_coembedding(cell_2_rgb)
+  HGSC_Fig1d_celltypes_insitu()
+  #4 Regenerate Figure 1e: Coembedding across ST and scRNA-seq datasets
+  HGSC_Fig1e_coembedding()
   #5 Regenerate Figure 1f: Cell Type Compositions
-  HGSC_Fig1f_celltype_composition(cell_2_rgb = cell_2_rgb)
+  HGSC_Fig1f_celltype_composition()
   #6 Regenerate Figure 1g
-  HGSC_Fig1g_hg(cell_2_rgb = cell_2_rgb)
+  HGSC_Fig1g_hg()
   #7 Regenerate Figure 1h: Cell Co-localization Quotient Analysis
-  HGSC_Fig1h_clq(cell_2_rgb = cell_2_rgb)
+  HGSC_Fig1h_clq()
   return()
 }
 
 #' Figure 1b. CoMut Files
-#'
 #' This function generates the .tsv files that are inputed into python "CoMut" 
 #' code for generating a summary figure of multi-modal data for this HGSC cohort
-#'
 #' @return a data frame of simplified clinical meta data. 
 HGSC_Fig1b_make_comut <- function(){
   master <- readRDS(get.file("Data/MasterProfileData.rds"))
@@ -227,19 +222,17 @@ HGSC_Fig1b_make_comut <- function(){
 }
 
 #' Figure 1c. Cell Type UMAPs 
-#'
 #' This function loads Seurat Objects that store the UMAP embeddings for high-
 #' confidence cells for each of the Discovery, Validation 1, and Validation 2
 #' datasets. The function loads list objects with the UMAP embedding info for 
 #' the Test 1 and Test 2 datasets. Finally this function plots the UMAP
 #' embeddings for each dataset where the cells are colored by their assigned 
 #' cell types. 
-#'
 #' @return this function returns nothing, but writes figures in .pdf format 
-#' in the Figures/ folder. 
+#' in the Figures/ folder.
 HGSC_Fig1c_celltype_umaps <- function(cell_2_rgb){
   # load data and results 
-  r <- readRDS(get.file("Data/SMI_data.rds"))
+  r<-readRDS(get.file("Data/SMI_data.rds"))
   so_smi <- readRDS(get.file("Results/HGSC_SMI_wUMAP.rds"))
   so_iss <- readRDS(get.file("Results/HGSC_ISS_wUMAP.rds"))
   so_mer <- readRDS(get.file("Results/HGSC_MERFISH_wUMAP.rds"))
@@ -312,11 +305,8 @@ HGSC_Fig1c_celltype_umaps <- function(cell_2_rgb){
 }
 
 #' Figure 1d. Cell Types plotted in situ. 
-#'
 #' For smaller FOVs of tissue, we use segmentation maps to visualize the cell 
 #' type calls in situ. For the Whole Tissue samples, we use 
-#' 
-#' @param cell_2_rgb a named list of colors assigned to each of the cell types
 #' @return this function returns nothing, but writes figures in .pdf or .png 
 #' format in the Figures/ folder. 
 HGSC_Fig1d_celltypes_insitu<- function(cell_2_rgb){
@@ -439,11 +429,8 @@ HGSC_Fig1d_celltypes_insitu<- function(cell_2_rgb){
 }
 
 #' Figure 1e. Coembedding Validation with scRNA-seq
-#'
 #' For smaller FOVs of tissue, we use segmentation maps to visualize the cell 
 #' type calls in situ. For the Whole Tissue samples, we use 
-#' 
-#' @param cell_2_rgb a named list of colors assigned to each of the cell types
 #' @return this function returns nothing, but writes figures in .pdf or .png 
 #' format in the Figures/ folder. 
 HGSC_Fig1e_coembedding <- function(cell_2_rgb){
@@ -499,15 +486,11 @@ HGSC_Fig1e_coembedding <- function(cell_2_rgb){
 }
 
 #' Figure 1f. Coembedding Validation with scRNA-seq
-#'
 #' For smaller FOVs of tissue, we use segmentation maps to visualize the cell 
 #' type calls in situ. For the Whole Tissue samples, we use 
-#' 
-#' @param cell_2_rgb a named list of colors assigned to each of the cell types
 #' @return this function returns nothing, but writes figures in .pdf or .png 
 #' format in the Figures/ folder. 
-HGSC_Fig1f_celltype_composition <- function(cell_2_rgb,
-                                            ct = c("Malignant", "Fibroblast",
+HGSC_Fig1f_celltype_composition <- function(ct = c("Malignant", "Fibroblast",
                                                    "Endothelial", "Monocyte",
                                                    "Mast.cell", "B.cell",
                                                    "TNK.cell", "Other")){
@@ -709,13 +692,10 @@ HGSC_Fig1f_celltype_composition <- function(cell_2_rgb,
 }
 
 #' Figure 1g. Hypergeometric Tests for Spatial Data
-#'
 #' For the Discovery dataset, we perform hypergeometric tests to evaluate if 
 #' cell types co-occur in spatial frames more often than expected by random. 
-#' 
-#' @param cell_2_rgb a named list of colors assigned to each of the cell types
 #' @return this function returns nothing, but writes figures in .pdf format. 
-HGSC_Fig1g_hg <- function(cell_2_rgb){
+HGSC_Fig1g_hg <- function(){
   # divide samples into grids
   r <-readRDS(get.file("Data/SMI_data.rds"))
   r1<-get.frames(r,n1=300) 
@@ -782,15 +762,12 @@ HGSC_Fig1g_hg <- function(cell_2_rgb){
 }
 
 #' Figure 1h. Co-localization Quotient 
-#'
 #' For the Discovery dataset, we calculate co-localization quotient (CLQ, 
 #' Methods) between fibroblasts and T/NK cells and malignant cells and T/NK 
 #' cells to explore the relationship of infiltration in the two predominant 
 #' spatial components of the tumor tissue. 
-#' 
-#' @param cell_2_rgb a named list of colors assigned to each of the cell types
 #' @return this function returns nothing, but writes figures in .pdf format.
-HGSC_Fig1h_clq <- function(cell_2_rgb){
+HGSC_Fig1h_clq <- function(){
   r <-readRDS(get.file("Data/SMI_data.rds"))
   
   # compute co-localization quotient

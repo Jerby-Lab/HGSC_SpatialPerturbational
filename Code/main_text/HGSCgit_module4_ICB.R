@@ -8,32 +8,25 @@
 # Figure 4e: T/NK and TMB predictors of ICB
 
 #' Figure 4 Wrapper Function
-#'
-#' This function calls code to reproduce main text Figures 4a-e
-#'
-#' @return this function returns nothing, but writes figures in .pdf format 
-#' in the Figures/ folder. 
+#' Reproduce Figure 4 from (Yeh et al., 2024) in the designated Figures folder. 
 HGSC_Figure4_ICB<-function(){
   #1 Regenerate Figure 4a: Forest Plot of Overall Survival in HGSC Spatial Cohort
   ICB_Fig4a()
   #2 Regenerate Figure 4b: Kaplan Meier Curves of Overall Survival in HGSC Spatial Cohort
   ICB_Fig4b()
-  # #3 Regenerate Figure 4c: MTIL as predictor of time to event clinical data, public data 
+  #3 Regenerate Figure 4c: MTIL as predictor of time to event clinical data, public data 
   ICB_Fig4c()
-  # #4 Regenerate Figure 4d: MTIL as predictor of response, I-SPY2 trial
+  #4 Regenerate Figure 4d: MTIL as predictor of response, I-SPY2 trial
   ICB_Fig4d()
-  # #5 Regenerate Figure 4e: T/NK and TMB predictors of ICB
+  #5 Regenerate Figure 4e: T/NK and TMB predictors of ICB
   ICB_Fig4e()
   return()
 }
 
 #' Figure 4a. Forest Plot of Overall Survival in HGSC Spatial Cohort
-#'
 #' This function takes fitted multivariate cox proportional hazards models and
 #' visualizes hazards ratios in a forest plot. 
-#'
-#' @return null, but writes figures in .pdf format 
-#' in the Figures/ folder. 
+#' @return Fig4a.pdf in the Figures folder. 
 ICB_Fig4a <- function(){
   # sub-function for finding the confidence interval of hazards ratio
   get_CI <- function(cox_model){
@@ -57,8 +50,8 @@ ICB_Fig4a <- function(){
   }
   
   # construct the input data
-  CI <- get_CI(readRDS(get.file("Results/HGSC_MultivariateCox1.rds")))
-  CI2 <- get_CI(readRDS(get.file("Results/HGSC_MultivariateCox2.rds")))
+  CI <- get_CI(readRDS(get.file("Results/ST_MultivariateCox1.rds")))
+  CI2 <- get_CI(readRDS(get.file("Results/ST_MultivariateCox2.rds")))
   forest_data <- rbind(rbind(CI[1:6, ], CI2[c("BRCAP", "TMB"),]), CI[7,])
   
   # set capping thresholds
@@ -104,17 +97,14 @@ ICB_Fig4a <- function(){
 }
 
 #' Figure 4b. Kaplan Meier Curves of Overall Survival in HGSC Spatial Cohort
-#'
 #' This function discretizes MTIL into bottom quartile, top quartile of patients
 #' based on average MTIL expression and estimated T/NK cell levels. This function
 #' then computes the log-rank p-value for predictability of survival and 
 #' visualizes the results on a kaplan meier curve. 
-#'
-#' @return null, but writes figures in .pdf format 
-#' in the Figures/ folder. 
+#' @return Fig4b.pdf in the Figures folder. 
 ICB_Fig4b <- function() {
   # Load in the data. 
-  surv <- readRDS(get.file("Data/HGSC_SurvivalData.rds"))
+  surv <- readRDS(get.file("Data/ST_SurvivalData.rds"))
   surv$fu_time3 <- surv$fu_time1/365
   
   # Specifying the features to analyze
@@ -124,10 +114,7 @@ ICB_Fig4b <- function() {
   title.name = c("Overall Survival, by MTIL Expression",
                  "Overall Survival, by T/NK Cell Density")
   names(title.name) = fu_features
-  
-  # Opening a PDF device to save plots
-  pdf(get.file("Figures/Fig4b.pdf"), width = 7, height = 7)
-  
+  plots<-list()
   for (feat in fu_features) {
     # Identifying necessary columns
     relevant_columns <- surv[, c(which(colnames(surv) %in% c("patients",
@@ -172,17 +159,19 @@ ICB_Fig4b <- function() {
                      legend = "right", # Position legend on the left
                      legend.labs = custom_labels, 
                      legend.title = leg.name[feat]) # Custom labels for the legend)
-    print(p1)
+    plots[[feat]]<-p1
   }
+  
+  # Opening a PDF device to save plots
+  pdf(get.file("Figures/Fig4b.pdf"), width = 7, height = 7)
+  print(plots[[1]]);print(plots[[2]])
   dev.off()
 }
 
 #' Figure 4c. MTIL as predictor of time to event clinical data, public data 
-#'
 #' This function plots kaplan meier curves of MTIL estimated from bulk 
 #' transcriptomics data as a predictor of survival in publicly available 
-#' Melanoma, Non-small cell lung cancer, and HGSC datasetts. 
-#'
+#' Melanoma, Non-small cell lung cancer, and HGSC datasets. 
 #' @return null, but writes figures in .pdf format 
 #' in the Figures/ folder. 
 ICB_Fig4c <- function() {
@@ -191,7 +180,7 @@ ICB_Fig4c <- function() {
   lc = readRDS(get.file("Data/ICB_NSCLC_Ravi2023.rds"))
   lc$survival <- Surv(lc$metadata$Harmonized_PFS_Days/365,
                       lc$metadata$Harmonized_OS_Event)
-  hgsc = readRDS(get.file("Data/ICGC_HGSC_AU.rds"))
+  hgsc = readRDS(get.file("Data/BulkRNA_HGSC_AU.rds"))
   hgsc<-set.list(hgsc,hgsc$metadata$donor_tumour_stage_at_diagnosis=="III")
   
   # quantize mtil expression 
@@ -215,16 +204,13 @@ ICB_Fig4c <- function() {
 }
 
 # Figure 4d: MTIL as predictor of response, I-SPY2 trial 
-
 #' This function plots boxplots of MTIL expression (from bulk transcriptomics)
 #' as a function of binary response (pCR vs. no pCR) in two arms of the I-SPY2 
 #' clinical trials 
-#'
-#' @return null, but writes figures in .pdf format 
-#' in the Figures/ folder. 
+#' @return Fig4d.pdf in the Figures folder. 
 ICB_Fig4d <- function() {
   # load Pusztai et al dataset
-  r <- readRDS("Data/Breast_Durv_Pusztai.rds")
+  r <- readRDS(get.file("Data/ICB_BC_Pusztai2021.rds"))
   
   # make plotting data frame for the Pusztai et al dataset
   plt <- data.frame(r[c("pCR", "arm", "HR", "HER2")], r$MTIL, 
@@ -241,7 +227,7 @@ ICB_Fig4d <- function() {
     ylab("MTIL Overall Expression")
   
   # load Wolf et al dataset
-  r <-readRDS("Data/Breast_Pembro_Wolf.rds")
+  r <-readRDS(get.file("Data/ICB_BC_Wolf2022.rds"))
   
   # make plotting data frame for the Wolf et al dataset
   plt <- data.frame(r[c("pCR", "arm", "HR", "HER2")], r$MTIL,
@@ -264,22 +250,18 @@ ICB_Fig4d <- function() {
 }
 
 # Figure 4e: T/NK and TMB predictors of ICB
-
 #' This function plots kaplan meier curves of other biomarkers (estimated T/NK 
 #' cell levels from bulk transcriptomics data, and tumor mutational burden) to 
 #' test their predictability of survival in publicly available 
 #' Melanoma, Non-small cell lung cancer, and HGSC datasets. 
-#'
-#'
-#' @return null, but writes figures in .pdf format 
-#' in the Figures/ folder. 
+#' @return Fig4e.pdf in the Figures folder. 
 ICB_Fig4e <- function(){
   # load bulk transcriptomics data 
   mel = readRDS(get.file("Data/ICB_melanoma_Liu2019.rds"))
   lc = readRDS(get.file("Data/ICB_NSCLC_Ravi2023.rds"))
   lc$survival <- Surv(lc$metadata$Harmonized_PFS_Days/365,
                       lc$metadata$Harmonized_OS_Event)
-  hgsc = readRDS(get.file("Data/ICGC_HGSC_AU.rds"))
+  hgsc = readRDS(get.file("Data/BulkRNA_HGSC_AU.rds"))
   hgsc<-set.list(hgsc,hgsc$metadata$donor_tumour_stage_at_diagnosis=="III")
   
   # quantize mtil expression 

@@ -7,7 +7,8 @@
 # Figure 3c. MTIL spatial maps (composite made in Adobe Illustrator)
 # Figure 3d: MTIL as a function of TIL proximity and abundance (boxplot)
 # Figure 3e: MTIL ROCs
-# Figure 3f: MTIL in Whole Tissue (Test 2)
+# Figure 3f: MTIL in Representative Whole Tissue (Test 2)
+# Figure 3f: MTIL in Test 2 Dataset
 
 #' Figure 3 Wrapper Function
 #' Reproduce main text Figures 3a-f. 
@@ -161,11 +162,26 @@ mTIL_Fig3c <-function(r,r1){
   #1 Use the mTIL scores to color the malignant cells.
   X.ttest<-readRDS(get.file("Results/ST_Mtil_Discovery_ttest.per.sample.rds"))
   X<-get.mat(r1$cells,c("hot","hot100"),data = NA)
+  
   for(x in unique(r1$samples)){
     b<-r1$samples==x
     X[b,]<-apply(cap.mat(r1$scores[b,c("hot","hot100")],
-                         cap = 0.01,MARGIN = 2),2,
-                 function(x) scores.2.colors(x))
+                         cap = 0.05,MARGIN = 2),2,
+                 function(x){
+                   p <- ggplot(data.frame(s = x, s = x),
+                               aes(x = s,
+                                   y = s,
+                                   col = s)) +
+                     geom_point() +
+                     scale_color_gradient2(low = '#009392', 
+                                           mid = '#f6edbd', 
+                                           high = '#A01C00',
+                                           midpoint = median(
+                                             cap_object(x, 0.05))) +
+                     coord_fixed()
+                   colors <- data.frame(ggplot_build(p)$data[[1]])[,1]
+                   return(colors)
+                 })
   }
   
   #2 Color TNK cells in black and other cells in grey.
@@ -196,7 +212,7 @@ mTIL_Fig3c <-function(r,r1){
   #4 Also generate space-filling spatial maps to regenerate Figure 3d.
   # a. load information
   cell2rgb <- list("Other" = c(200, 200, 200), # grey
-                   "Malignant" = c(7, 224, 0), #green
+                   "Malignant" = c(7, 224, 0), #green before color bar
                    "TNK.cell" = c(0, 0, 0)) # black
   
   # b. plot for each sample
@@ -252,7 +268,7 @@ mTIL_Fig3c <-function(r,r1){
                                  low_qc_color = 1,
                                  cont_field = "Malignant",
                                  contvals = contvals,
-                                 outfile = get.file(paste0("Figures/Fig3cTMP_",
+                                 outfile = get.file(paste0("Figures/Fig3c_",
                                                            sample,
                                                            ".png")))
     
@@ -326,7 +342,7 @@ mTIL_Fig3e<-function(r1,q1 = 0.75){
   return()
 }
 
-#' Figure 3f. MTIL in Whole Tissue (Test 2)
+#' Figure 3f. MTIL in Representative Whole Tissue (Test 2)
 #' Visualize MTIL in situ in whole tissue data from the Test 2 dataset. 
 #' @param r Test 2 data, a single whole tissue section
 #' @param mal Test 2 data, malignant cells
@@ -368,6 +384,59 @@ mTIL_Fig3f<- function(r,mal){
   png(get.file("Figures/Fig3f.png"),
       height = 16, width = 16, units = "in", res = 500)
   print(whole)
+  dev.off()
+}
+
+#' Figure 3g. MTIL Overall Expression in Test 2 Dataset
+#' 
+#' This function generates boxplots of MTIL Overall Exrpression in whole 
+#' tissue as a function of T/NK cell levels on the FOV-, Frame-, and Cell-level. 
+#' 
+#' @param i which whole tissue data to use. 
+#' @return Fig. 3f (Figures folder). 
+mTIL_Fig3g <- function(){
+  out <- lapply(c("113", "8", "2", "1"), 
+                function(i){readRDS(
+                  get.file(paste0(
+                    "Data/ST_Test2_HGSC", i , "_malignant.rds")))})
+  
+  q1 <- 0.75
+  P<- list(samples = do.call("c", 
+                             lapply(out, 
+                                    function(r1){r1$scoresSamples[,"hot100"]})),
+           patches = do.call("c", 
+                             lapply(out, 
+                                    function(r1){r1$scoresAv[,"hot100"]})), 
+           cells = do.call("c", 
+                           lapply(out, 
+                                  function(r1){r1$scores[,"hot100"]})))
+  L3<-list(
+    samples = discretize.3.labels(
+      do.call("c", lapply(out, function(r1){r1$tmeSamples[,"TNK.cell"]})),1-q1),
+    patches = discretize.3.labels(
+      do.call("c", lapply(out, function(r1){r1$tmeAv[,"TNK.cell"]})),1-q1),
+    cells = discretize.3.labels(
+      do.call("c", lapply(out, function(r1){r1$tme[,"TNK.cell"]})),1-q1))
+  titles<-c(samples = "FOV-level",patches = "Frame-level",cells = "Cell-level")
+  
+  f<-function(x){
+    print(x)
+    l<-list(c("Low","Moderate"),c("Moderate","High"))
+    p1<-call.boxplot(P[[x]],L3[[x]],ylab = "MTIL program OE",
+                     xlab = "TIL levels",main = titles[x], cex = 1)
+    p1<-p1+stat_compare_means(comparisons = l,
+                              label = "p.format",
+                              method = "t.test", 
+                              method.args = 
+                              list(alternative = "less"), 
+                              p.format = "%.5e")+
+      theme(legend.position="none")
+    return(p1)
+  }
+  
+  p<-lapply(names(L3),f)
+  pdf(get.file("Figures/Fig3g.pdf"), width = 2, height = 4)
+  print(p)
   dev.off()
 }
 

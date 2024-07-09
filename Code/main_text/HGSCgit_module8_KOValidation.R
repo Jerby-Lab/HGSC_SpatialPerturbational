@@ -11,10 +11,11 @@
 #' @return this function returns nothing, but writes figures in .pdf format 
 #' in the Figures/ folder. 
 HGSC_Figure8_KOValidation <- function(){
+  source = readRDS(get.file("Data/SourceData_Fig8.rds"))
   # Plot KO Validation in NK cells
-  HGSC_Fig8a()
+  HGSC_Fig8a(source[[1]])
   # Plot KO Validation in CD8 T cells
-  HGSC_Fig8b() 
+  HGSC_Fig8b(source[[2]]) 
   # Plot PTPN1i Validation
   HGSC_Fig8c()
 }
@@ -25,8 +26,7 @@ HGSC_Figure8_KOValidation <- function(){
 #' experiment with NK cells. 
 #' 
 #' @return this function returns nothing, but prints a plot to device. 
-HGSC_Fig8a <- function(){
-  df1 <- read.csv(get.file("Data/NK_KO_Int.csv"))
+HGSC_Fig8a <- function(df1){
   a = plot_caspase_final(df1)
   pdf(get.file("Figures/Fig8a.pdf"), width = 8, height = 6)
   print(a)
@@ -39,8 +39,7 @@ HGSC_Fig8a <- function(){
 #' experiment with CD8 T cells
 #' 
 #' @return this function returns nothing, but prints a plot to device. 
-HGSC_Fig8b <- function(){
-  df2 <- read.csv(get.file("Data/T_KO_Int.csv"))
+HGSC_Fig8b <- function(df2){
   b = plot_caspase_final(
     df2,title = "TYK-nu in CD8 T Co-culture vs. Monoculture", 
     subtitle = "Single Gene KOs", 
@@ -59,66 +58,13 @@ HGSC_Fig8b <- function(){
 #' unified plot of drug-specific cytotoxicity attributd to PTPN1i. 
 #' 
 #' @return this function returns nothing, but prints a plot to device. 
-HGSC_Fig8c <- function(){
-  # read in data from multiple experiments. 
-  plate_ids <- as.matrix(read.csv(get.file("Data/0208_ptpni_tyknu.csv"), 
-                                  header = F))
-  plate_f <- as.matrix(read.csv(get.file("Data/0208_ptpni_tyknu_val.csv"), 
-                                header = F))
-  df <- data.frame(condition = c(plate_ids), f = c(plate_f))
-  df$batch = "0208"
-  plate_ids <- as.matrix(read.csv(get.file("Data/0313_ptpni_tyknu.csv"), 
-                                  header = F))
-  plate_f <- as.matrix(read.csv(get.file("Data/0313_ptpni_tyknu_val.csv"), 
-                                header = F))
-  df1 <- data.frame(condition = c(plate_ids), f = c(plate_f))
-  df1$batch = "0313"
-  
-  # Correct for Media Baseline in Each Batch 
-  bl<- mean(filter(df, condition == "Media")$f)
-  df$fa = df$f - bl
-  bl <- mean(filter(df1, condition == "Media")$f)
-  df1$fa = df1$f - bl
-  
-  # Combine Both Datasets, remove Empty and Media
-  df <- rbind(df, df1)
-  df <- filter(df, condition != "Empty" & condition != "Media")
-  
-  # Parse Olivia's annotations
-  split = data.frame(do.call("rbind", lapply(df$condition, function(cond){
-    split = strsplit(cond, split = "Mono")[[1]]
-    out = c(gsub("_", "", split[1]), "Monoculture", 
-            gsub("uM", "", gsub("_", "", split[2])))
-    if (length(split) == 1) {
-      split = strsplit(cond, split = "Co-culture")[[1]]
-      out = c(gsub("_", "", split[1]), "Co-culture", 
-              gsub("uM", "", gsub("_", "", split[2])))
-    }
-    return(out)
-  })))
-  colnames(split) <- c("Treatment", "Condition", "Conc")
-  plt <- cbind(df, split)
-  
-  # Filter out DMSO data we are NOT using 
-  plt1 <- filter(plt, Treatment != "DMS0" & (Conc != 0 | Conc != 16))
-  
-  # Make 16uM DMSO controls
-  dmso <- filter(plt1, Treatment == "DMSO", Conc == 16)
-  controls = dmso %>% group_by(Condition, batch) %>% summarize(fa = mean(fa))
-  
-  ## use DMOS 16um as the 0 condition 
-  plt3 <- filter(plt1, 
-                 (Treatment == "PTPN1i" & Conc != "0") |
-                   (Treatment == "DMSO" & Conc == "16"))
-  b = grepl("DMSO", plt3$condition) & grepl("16uM", plt3$condition)
-  plt3$Treatment[b] <- "PTPN1i"
-  plt3$Conc[b] <- "0"
-  plt4 <- merge(plt3, controls, by = c("Condition", "batch"), all.x = T)
+HGSC_Fig8c <- function(df){
+  plt4 <- filter(df, cellline == "Tyk-nu")
   plt5 <- plt4 %>% 
-    mutate(D = 1 - fa.x/fa.y) %>% 
+    mutate(D = 1 - f_adj/f_ctrl) %>% 
     group_by(Condition, Conc) %>% 
-    summarize(c = mean(D), 
-              se = sd(D)/sqrt(length(D))) 
+    dplyr::summarize(c = mean(D), 
+                     se = sd(D)/sqrt(length(D))) 
   plt5$Conc <- as.numeric(plt5$Conc) 
   
   # make TYK-nu plot
@@ -137,74 +83,13 @@ HGSC_Fig8c <- function(){
     scale_color_manual(values = c("darkred", "dodgerblue4")) +
     geom_hline(yintercept = 0, color = "grey")
   
-  plate_ids <- as.matrix(
-    read.csv(
-      get.file("Data/0218_ptpni_ovcar.csv"), header = F))
-  plate_f <- as.matrix(
-    read.csv(
-      get.file("Data/0218_ptpni_ovcar_val.csv"), header = F))
-  df <- data.frame(condition = c(plate_ids), f = c(plate_f))
-  df$batch = "0218"
-  plate_ids <- as.matrix(
-    read.csv(
-      get.file("Data/0306_ptpni_ovcar.csv"), header = F))
-  plate_f <- as.matrix(
-    read.csv(
-      get.file("Data/0306_ptpni_ovcar_val.csv"), header = F))
-  df1 <- data.frame(condition = c(plate_ids), f = c(plate_f))
-  df1$batch = "0306"
   
-  # Correct for Media Baseline in Each Batch 
-  bl<- mean(filter(df, condition == "Media Only")$f)
-  df$fa = df$f - bl
-  bl <- mean(filter(df1, condition == "Media Only")$f)
-  df1$fa = df1$f - bl
-  
-  # Combine Both Datasets, remove Empty and Media
-  df <- rbind(df, df1)
-  df <- filter(df, condition != "Empty" & condition != "Media Only") %>% 
-    mutate(condition = gsub("Co-Culture", "Co-culture", condition))
-  
-  # Parse Olivia's annotations
-  split = data.frame(do.call("rbind", lapply(df$condition, function(cond){
-    split = strsplit(cond, split = "Mono")[[1]]
-    out = c(gsub("_", "", split[1]), 
-            "Monoculture", 
-            gsub("uM", "", gsub("_", "", split[2])))
-    if (length(split) == 2 & grepl("NoDrug", split[2])) {
-      out = c("", "Monoculture", "0")
-    }
-    if (length(split) == 1) {
-      split = strsplit(cond, split = "Co-culture", )[[1]]
-      out = c(gsub("_", "", split[1]), 
-              "Co-culture", 
-              gsub("uM", "",
-                   gsub("_", "", split[2])))
-    }
-    return(out)
-  })))
-  colnames(split) <- c("Treatment", "Condition", "Conc")
-  plt <- cbind(df, split)
-  
-  # Filter out DMSO data we are NOT using 
-  plt1 <- filter(plt, Treatment != "DMS0" & (Conc != 0 | Conc != 16))
-  
-  # Make 16uM DMSO controls
-  dmso <- filter(plt1, Treatment == "DMSO", Conc == 16)
-  controls = dmso %>% group_by(Condition, batch) %>% summarize(fa = mean(fa))
-  
-  ## use DMOS 16um as the 0 condition 
-  plt3 <- filter(plt1, (Treatment == "PTPN1i" & Conc != "0") | 
-                   (Treatment == "DMSO" & Conc == "16"))
-  b = grepl("DMSO", plt3$condition) & grepl("16uM", plt3$condition)
-  plt3$Treatment[b] <- "PTPN1i"
-  plt3$Conc[b] <- "0"
-  plt4 <- merge(plt3, controls, by = c("Condition", "batch"), all.x = T)
+  plt4 <- filter(df, cellline == "OVCAR3")
   plt5 <- plt4 %>% 
-    mutate(D = 1 - (fa.x/fa.y)) %>% 
+    mutate(D = 1 - f_adj/f_ctrl) %>% 
     group_by(Condition, Conc) %>% 
-    summarize(c = mean(D), 
-              se = sd(D)/sqrt(length(D))) 
+    dplyr::summarize(c = mean(D), 
+                     se = sd(D)/sqrt(length(D))) 
   plt5$Conc <- as.numeric(plt5$Conc) 
   
   # plot OVCAR3
@@ -243,31 +128,14 @@ plot_caspase_final <- function(
                          "black", "#dbdbdb", 
                          'darkred', "#f7cecb"),
     noise = F){
-  df <- df %>% gather(key = condition, value = i, -Elapsed)
-  df$condition <- unlist(
-    lapply(
-      df$condition, function(x) strsplit(x, split = "\\.")[[1]][1]))
-  df = df %>% separate(condition, into = c("Gene", "Condition"), sep = "_")
   
-  # filter controls + add noise to intensities
-  out <- filter(df, Condition != "Ctrl" & Condition != "CTRL")
-  if (noise) {out = mutate(out, i = i/1000 + 1)} else {
-    out = mutate(out, i = i/1000)}
-  
-  # get the monoculture controls
-  plt_monos <- out %>% filter(Condition != "CC") %>%
-    group_by(Elapsed, Gene, Condition) %>% 
-    dplyr::summarize(c = mean(i), 
-                     se = sd(i)/sqrt(length(i)))
-  
-  # do calculations
-  plt = out %>%
-    merge(plt_monos %>% select(-Condition), 
-          by = c("Elapsed", "Gene"), all.x=T) %>% 
+  # do calculations   
+  plt = df %>%
     mutate(cn = i - c) %>% 
     group_by(Elapsed, Gene, Condition) %>%
     dplyr::summarize(c = mean(cn),
-                     se = sd(cn)/sqrt(length(cn)))  %>%
+                     se = sd(cn)/sqrt(length(cn)),
+                     n = length(cn))  %>%
     mutate(cond = paste0(Gene, "_", Condition))
   plt$cond <- factor(plt$cond, unique(plt$cond))
   plt$data <- "Single Gene KOs"
@@ -277,7 +145,6 @@ plot_caspase_final <- function(
     geom_point() +
     geom_line() +
     geom_errorbar(aes(ymin = c- se, ymax = c+ se), width = 0.3) +
-    # facet_wrap(~name) +
     theme_pubclean() +
     scale_color_manual(values = colors) +
     ylab("Delta Caspase Intensity") +

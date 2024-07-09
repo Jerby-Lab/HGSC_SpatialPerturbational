@@ -17,7 +17,7 @@ HGSC_Figure8_KOValidation <- function(){
   # Plot KO Validation in CD8 T cells
   HGSC_Fig8b(source[[2]]) 
   # Plot PTPN1i Validation
-  HGSC_Fig8c()
+  HGSC_Fig8c(source[[3]])
 }
 
 #' Figure 8a. KO Validation in NK cells

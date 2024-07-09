@@ -281,6 +281,7 @@ mTIL_Fig3c <-function(r,r1, Mtil.sig = Mtil.sig){
 }
 
 #' Figure 3d. MTIL expression as a function of TIL proximity and abundance (boxplots)
+#' 
 #' @param r1 Discovery data, malignant cells.
 #' @param q1 quartile cutoff for discretizing T/NK cell levels. 
 #' @return Fig. 3d (Figures folder). 
@@ -324,6 +325,8 @@ mTIL_Fig3d<-function(r1,q1 = 0.75){
 }
 
 #' Figure 3e. MTIL as a predictor of TIL levels (ROC curves)
+#' 
+#' 
 #' @param r1 Discovery data, malignant cells.
 #' @param q1 quartile cutoff for discretizing T/NK cell levels. 
 #' @return Fig. 3e (Figures folder). 
@@ -345,7 +348,9 @@ mTIL_Fig3e<-function(r1,q1 = 0.75){
 }
 
 #' Figure 3f. MTIL in Representative Whole Tissue (Test 2)
+#' 
 #' Visualize MTIL in situ in whole tissue data from the Test 2 dataset. 
+#' 
 #' @param r Test 2 data, a single whole tissue section
 #' @param mal Test 2 data, malignant cells
 #' @return Fig. 3f (Figures folder). 

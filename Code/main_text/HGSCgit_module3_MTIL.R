@@ -22,7 +22,7 @@ HGSC_Figure3_mTIL<-function(r,r1,Mtil.sig){
   #2 Figure 3b: Gene Set Enrichment Analysis
   mTIL_Fig3b(r = r,Mtil.sig = Mtil.sig)
   #4 Figure 3c: MTIL spatial maps
-  mTIL_Fig3c(r = r,r1 = r1)
+  mTIL_Fig3c(r = r,r1 = r1, Mtil.sig = Mtil.sig)
   #5 Figure 3d: MTIL as a function of TIL proximity and abundance (boxplot)
   mTIL_Fig3d(r1 = r1)
   #6 Figure 3e: ROCs
@@ -82,6 +82,7 @@ mTIL_Fig3a<-function(r1,Mtil.sig){
 
 #' Figure 3b. MTIL gene ontology enrichment analysis 
 #' @param r Discovery data, malignant cells.
+#' #' @param Mtil.sig Mtil signature. 
 #' @return Fig. 3b (Figures folder). 
 mTIL_Fig3b <- function(r,Mtil.sig){
   # run mtil up GO enrichment
@@ -157,8 +158,9 @@ mTIL_Fig3b <- function(r,Mtil.sig){
 #' Figure 3c. MTIL gene ontology enrichment analysis plot.
 #' @param r Discovery data.
 #' @param r1 Discovery data, malignant cells.
+#' #' @param Mtil.sig Mtil signature. 
 #' @return Fig. 3c (Figures folder). 
-mTIL_Fig3c <-function(r,r1){
+mTIL_Fig3c <-function(r,r1, Mtil.sig = Mtil.sig){
   #1 Use the mTIL scores to color the malignant cells.
   X.ttest<-readRDS(get.file("Results/ST_Mtil_Discovery_ttest.per.sample.rds"))
   X<-get.mat(r1$cells,c("hot","hot100"),data = NA)

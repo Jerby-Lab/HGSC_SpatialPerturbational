@@ -22,7 +22,9 @@ HGSC_main_run<-function(){
   #Regenerate Figures from Yeh et al. 2024
   
   print("Figure 1")
-  HGSC_Figure1_SpatiomolecularMapping(cell_2_rgb=cell_2_rgb)
+  HGSC_Figure1_SpatiomolecularMapping(cell_2_rgb=cell_2_rgb,
+                                      r=r.smi, 
+                                      q=r.xenium)
   print("Figure 2")
   HGSC_Figure2_TIP_DF(r.smi = r.smi,rCD8.smi = rCD8.smi,r.xenium = r.xenium,
                       rTNK.xenium = rTNK.xenium,rCD8.xenium = rCD8.xenium,daf=daf)
@@ -45,7 +47,6 @@ HGSC_main_run<-function(){
   print("All Figures from Yeh et al., 2024 were reproduced and are avaliabile at the Figures directory.")
   return()
 }
-
 
 HGSC_main_download<-function(){
   overwrite.flag<<-T
@@ -92,7 +93,7 @@ HGSC_main_download<-function(){
 }
 
 get.file<-function(file1,code.flag = F){
-  dir1 <- "/Volumes/ljerby/ljerby/HGSC/Zenodo/"
+  dir1 <- "~/Projects/HGSC_SpatialPerturbational/"
   # dir1 <- "/Volumes/ljerby/HGSC_Profiling/Data/Share/Zenodo_unzipped/HGSC_Data/"
   dir2 <- "~/Desktop/R_code/6_Github/HGSC/HGSC_git_V2/Code/"
   if(!code.flag){file1<-paste0(dir1,file1);return(file1)}

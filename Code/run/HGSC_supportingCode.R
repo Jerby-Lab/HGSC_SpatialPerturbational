@@ -1205,7 +1205,7 @@ labels.2.colors<-function(x.class,x = NULL,number.flag = F,color.spec = "hsv"){
       call_col<-call_col[match(x.class,sort(unique(x.class)))]
     }
   }
-  if(!is.null(x)){names(call_col)<-x  }
+  if(!is.null(x)){names(call_col)<-x}
   return(call_col)
 }
 

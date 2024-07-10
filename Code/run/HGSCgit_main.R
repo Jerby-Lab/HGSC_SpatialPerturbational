@@ -50,7 +50,7 @@ HGSC_main_run<-function(){
 
 HGSC_main_download<-function(){
   overwrite.flag<<-T
-  source("~/Desktop/R_code/6_Github/HGSC/HGSC_git_V2/Code/run/HGSCgit_main.R")
+  # source("~/Desktop/R_code/6_Github/HGSC/HGSC_git_V2/Code/run/HGSCgit_main.R")
   if(!file.exists(get.file("Figures/Fig8c.pdf"))){HGSC_source()}
   
   #1 Download Presets 
@@ -95,7 +95,7 @@ HGSC_main_download<-function(){
 get.file<-function(file1,code.flag = F){
   dir1 <- "~/Projects/HGSC_SpatialPerturbational/"
   # dir1 <- "/Volumes/ljerby/HGSC_Profiling/Data/Share/Zenodo_unzipped/HGSC_Data/"
-  dir2 <- "~/Desktop/R_code/6_Github/HGSC/HGSC_git_V2/Code/"
+  dir2 <- "~/Projects/HGSC_SpatialPerturbational/"
   if(!code.flag){file1<-paste0(dir1,file1);return(file1)}
   file1<-paste0(dir2,file1)
   return(file1)
@@ -104,12 +104,13 @@ get.file<-function(file1,code.flag = F){
 HGSC_source<-function(code.dir){
   print("Sourcing HGSC_SpatialPerturbational GitHub repository.")
   dir.create(get.file("Figures/"))
-  files <- list.files(get.file("",code.flag = T),
+  files <- list.files(get.file("Code/",code.flag = T),
                       include.dirs = F,
                       recursive = T,
-                      pattern = ".R",
-                      full.names = T)
-  files<-files[!grepl("private",files)]
+                      pattern = "*.R",
+                      full.names = T, 
+                      ignore.case = F)
+  files<-files[!grepl("rds",files)]
   lapply(files, source)
   return()
 }

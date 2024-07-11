@@ -125,7 +125,7 @@ HGSC_Fig7d<-function(rslts){
 #' @param sig Mtil signature genes to add to visualization 
 #' @return this function returns nothing, but prints a plot to device.
 HGSC_Fig7e<-function(){
-  rslts<-readRDS(get.file("Results/SourceData_fig7e.rds"))
+  rslts<-readRDS(get.file("Results/SourceData_Fig7e.rds"))
   pdf(get.file("Figures/Fig7e.pdf"))
   blue_white_red <- colorRampPalette(c("dodgerblue4", "white", "red3"))(100)
   pheatmap(t(rslts$DEGs), cluster_cols = T, cluster_rows = F, color = blue_white_red, treeheight_col = 0,

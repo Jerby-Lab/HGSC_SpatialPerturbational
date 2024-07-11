@@ -29,7 +29,8 @@ HGSC_Figure3_mTIL<-function(r,r1,Mtil.sig){
   mTIL_Fig3e(r1 = r1)
   #7 Figure 4f: MTIL in Whole Tissue (Test 2)
   mTIL_Fig3f(r = r,mal = r1)
-  
+  #8 Figure 4g: MTIL vs. T/NK cell levels (Test 2)
+  mTIL_Fig3g()
   return()
 }
 
@@ -405,7 +406,7 @@ mTIL_Fig3g <- function(){
   out <- lapply(c("113", "8", "2", "1"), 
                 function(i){readRDS(
                   get.file(paste0(
-                    "Data/ST_Test2_HGSC", i , "_malignant.rds")))})
+                    "Results/ST_Test2_HGSC", i , "_malignantScores.rds")))})
   
   q1 <- 0.75
   P<- list(samples = do.call("c", 

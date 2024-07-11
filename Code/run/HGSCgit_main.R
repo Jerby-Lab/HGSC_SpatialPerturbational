@@ -20,10 +20,9 @@ HGSC_main<-function(){
 
 HGSC_main_run<-function(){
   #Regenerate Figures from Yeh et al. 2024
-  
   print("Figure 1")
   HGSC_Figure1_SpatiomolecularMapping(cell_2_rgb=cell_2_rgb,
-                                      r=r.smi, 
+                                      r=r.smi,
                                       q=r.xenium)
   print("Figure 2")
   HGSC_Figure2_TIP_DF(r.smi = r.smi,rCD8.smi = rCD8.smi,r.xenium = r.xenium,
@@ -41,7 +40,7 @@ HGSC_main_run<-function(){
                          rslts = rslts_prt4,
                          sig = Mtil.sig,
                          fitnessR = fitnessR)
-  print("Figure 7")
+  print("Figure 8")
   HGSC_Figure8_KOValidation()
   
   print("All Figures from Yeh et al., 2024 were reproduced and are avaliabile at the Figures directory.")
@@ -50,7 +49,7 @@ HGSC_main_run<-function(){
 
 HGSC_main_download<-function(){
   overwrite.flag<<-T
-  # source("~/Desktop/R_code/6_Github/HGSC/HGSC_git_V2/Code/run/HGSCgit_main.R")
+  source("~/Desktop/R_code/6_Github/HGSC/HGSC_git_V3/Code/run/HGSCgit_main.R")
   if(!file.exists(get.file("Figures/Fig8c.pdf"))){HGSC_source()}
   
   #1 Download Presets 
@@ -93,9 +92,8 @@ HGSC_main_download<-function(){
 }
 
 get.file<-function(file1,code.flag = F){
-  dir1 <- "~/Projects/HGSC_SpatialPerturbational/"
-  # dir1 <- "/Volumes/ljerby/HGSC_Profiling/Data/Share/Zenodo_unzipped/HGSC_Data/"
-  dir2 <- "~/Projects/HGSC_SpatialPerturbational/"
+  dir1 <- "/Volumes/ljerby/HGSC_Profiling/Data/Share/Zenodo/"
+  dir2 <- "~/Desktop/R_code/6_Github/HGSC/HGSC_git_V3/"
   if(!code.flag){file1<-paste0(dir1,file1);return(file1)}
   file1<-paste0(dir2,file1)
   return(file1)

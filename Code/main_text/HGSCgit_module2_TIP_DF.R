@@ -67,7 +67,7 @@ TIP_Fig2a_umaps<-function(r1){
 #' @return None. Generates Fig2b.pdf
 TIP_Fig2b_dotplot<-function(){
   if(!overwrite.flag&file.exists(get.file("Figures/Fig2b.pdf"))){return()}
-  X0<-readRDS(get.file("/Data/SourceData_fig2b.rds"))
+  X0<-readRDS(get.file("/Data/SourceData_Fig2b.rds"))
   p<-call.dotPlot(X0,cex = 8)
   pdf(get.file("Figures/Fig2b.pdf"))
   print(p)

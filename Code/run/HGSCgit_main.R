@@ -92,8 +92,8 @@ HGSC_main_download<-function(){
 }
 
 get.file<-function(file1,code.flag = F){
-  dir1 <- "/Volumes/ljerby/HGSC_Profiling/Data/Share/Zenodo/"
-  dir2 <- "~/Desktop/R_code/6_Github/HGSC/HGSC_git_V3/"
+  dir1 <- "/path/to/your/local/clone/of/this/repo/"
+  dir2 <- "/path/to/your/local/clone/of/this/repo/"
   if(!code.flag){file1<-paste0(dir1,file1);return(file1)}
   file1<-paste0(dir2,file1)
   return(file1)

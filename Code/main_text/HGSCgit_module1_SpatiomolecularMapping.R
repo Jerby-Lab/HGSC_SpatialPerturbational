@@ -22,7 +22,7 @@ HGSC_Figure1_SpatiomolecularMapping <- function(cell_2_rgb, r, q){
   #3 Regenerate Figure 1d: Cell Types in situ
   HGSC_Fig1d_celltypes_insitu(cell_2_rgb, r, q)
   #4 Regenerate Figure 1e: Coembedding across ST and scRNA-seq datasets
-  HGSC_Fig1e_coembedding()
+  HGSC_Fig1e_coembedding(cell_2_rgb = cell_2_rgb)
   #5 Regenerate Figure 1f: Cell Type Compositions
   HGSC_Fig1f_celltype_composition(r=r, q=q)
   #6 Regenerate Figure 1g
@@ -191,9 +191,9 @@ HGSC_Fig1d_celltypes_insitu<- function(cell_2_rgb, r, q){
   
   # plot selected smaples from test 2
   t1 <- readRDS(get.file("Data/ST_Test1.rds"))
-  plot <- filter(data.frame(t1[c("cell.types.conf", 
+  plot <- filter(data.frame(t1[c("cell.types", 
                                  "samples", "patients", 
-                                 "sites_binary")], t1$coor))
+                                 "sites")], t1$coor))
   samples = c("SMI6K_2_F00021", "SMI6K_2_F00027", 
               "SMI6K_2_F00019", "SMI6K_2_F00037")
   lapply(samples, function(x){
@@ -203,8 +203,8 @@ HGSC_Fig1d_celltypes_insitu<- function(cell_2_rgb, r, q){
                                fov,
                                "*.csv"))
     q <- subset_list(t1, t1$cells[t1$samples == x])
-    celltypes <- q$cell.types.conf
-    celltypes <- gsub("_LC", "", q$cell.types.conf)
+    celltypes <- q$cell.types
+    celltypes <- gsub("_LC", "", q$cell.types)
     cell_2_rgb <- list()
     cell_2_rgb[["B.cell"]] = c(255, 0, 0)
     cell_2_rgb[["Fibroblast"]] = c(34, 91, 224)
@@ -396,12 +396,12 @@ HGSC_Fig1f_celltype_composition <- function(ct = c("Malignant", "Fibroblast",
     
     # extract from test 1 
     t1 <- readRDS(get.file("Data/ST_Test1.rds"))
-    dfraw = data.frame(t1[c("samples", "cell.types.conf")])
-    t1ncells = data.frame(t1[c("samples", "cell.types.conf")]) %>% 
-      group_by(samples) %>% summarize(n = length(cell.types.conf))
+    dfraw = data.frame(t1[c("samples", "cell.types")])
+    t1ncells = data.frame(t1[c("samples", "cell.types")]) %>% 
+      group_by(samples) %>% summarize(n = length(cell.types))
     t1nct = bind_rows(lapply(unique(t1ncells$samples), function(s){
       dff = filter(dfraw, samples == s)
-      dff = dff %>% mutate(cell.types = factor(cell.types.conf, 
+      dff = dff %>% mutate(cell.types = factor(cell.types, 
                                                levels = names(cell_2_rgb)))
       c(samples = s, table(dff$cell.types))
     }))
@@ -424,7 +424,7 @@ HGSC_Fig1f_celltype_composition <- function(ct = c("Malignant", "Fibroblast",
     t2.4 <- readRDS(get.file("Data/ST_Test2_HGSC1.rds"))
     df1short = bind_rows(lapply(list(t2.1, t2.2, t2.3, t2.4), function(s){
       c(samples = unique(s$patients), 
-        table(s$cell.types.conf)/length(s$cell.types.conf))
+        table(s$cell.types)/length(s$cell.types))
     }))
     df1long = df1short %>% 
       gather(key = cell.types, value = proportion, -samples) %>% 

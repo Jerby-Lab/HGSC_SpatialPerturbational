@@ -11,7 +11,7 @@ Follow the steps below to reproduce the figures and tables in Yeh, Aguirre, Lave
 
 1. Clone this repository by executing `git clone https://github.com/Jerby-Lab/HGSC_SpatialPerturbational/`. 
 
-2. Download _**Yeh2024.zip**_ from [Zenodo](https://zenodo.org/records/12613839), place and unzip it in the `HGSC_SpatialPerturbational` repository. This will result in two additional direcotries: (1) Data, and (2) Results.
+2. Download _**Yeh2024.zip**_ from [Zenodo](https://zenodo.org/records/12613839), place and unzip it in the `HGSC_SpatialPerturbational` repository. This will result in two additional directories: (1) Data, and (2) Results.
 
 3. In `Code/run/HGSCgit_main.R` please replace `/path/to/your/local/clone/of/this/repo/` with the local path to this repository as it appears in your local machine. 
 
